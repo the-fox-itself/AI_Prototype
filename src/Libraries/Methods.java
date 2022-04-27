@@ -9,24 +9,22 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import static Mechanic.MainVariables.FONT_USED;
+
 public abstract class Methods {
     public final static Dimension FRAME_SIZE = new Dimension((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth(), (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight());
 
     final public static String SEPARATOR = System.getProperty("file.separator");
-    public final static Font f90 = new Font("", Font.PLAIN, 90);
-    public final static Font f80 = new Font("", Font.PLAIN, 80);
-    public final static Font f70 = new Font("", Font.PLAIN, 70);
-    public final static Font f60 = new Font("", Font.PLAIN, 60);
-    public final static Font f50 = new Font("", Font.PLAIN, 50);
-    public final static Font f45 = new Font("", Font.PLAIN, 45);
-    public final static Font f40 = new Font("", Font.PLAIN, 40);
-    public final static Font f35 = new Font("", Font.PLAIN, 35);
-    public final static Font f32 = new Font("", Font.PLAIN, 32);
-    public final static Font f30 = new Font("", Font.PLAIN, 30);
-    public final static Font f25 = new Font("", Font.PLAIN, 25);
-    public final static Font f20 = new Font("", Font.PLAIN, 20);
-    public final static Font f17 = new Font("", Font.PLAIN, 17);
-    public final static Font f15 = new Font("", Font.PLAIN, 15);
+
+    public static Font getFont(int size) {
+        return new Font(FONT_USED, Font.PLAIN, size);
+    }
+    public static Font getFontBold(int size) {
+        return new Font(FONT_USED, Font.BOLD, size);
+    }
+    public static Font getFontItalic(int size) {
+        return new Font(FONT_USED, Font.ITALIC, size);
+    }
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
