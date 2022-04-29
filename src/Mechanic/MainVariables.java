@@ -22,13 +22,21 @@ public class MainVariables {
     public static Vector<Vector<Double>> Neurons = new Vector<>();
     public static Vector<Vector<Double>> Biases = new Vector<>();
     public static Vector<Vector<Vector<Double>>> Synapses = new Vector<>();
-    public static Vector<Vector<Vector<Double>>> SynapseDerivatives = new Vector<>();
 
-    public static int inputs = 2; //784
-    public static int outputs = 3; //10
-    public static int[] layers = {inputs, 2, outputs}; //16, 16
+    public static Vector<Vector<Vector<Double>>> BiasNudges = new Vector<>();
+    public static Vector<Vector<Vector<Vector<Double>>>> SynapseNudges = new Vector<>();
+    public static Vector<Vector<Vector<Double>>> NeuronNudges = new Vector<>();
 
+    public static int inputs = 784; //784     2
+    public static int outputs = 10; //10    3
+    public static int[] layers = {inputs, 16, 16, outputs}; //16, 16         2
+
+    public static int neuralNetworkAnswer = -1;
     public static Vector<Double> perfectOutput = new Vector<>();
+    public static Vector<Double> costs = new Vector<>();
+    public static double averageCost;
+
+    public static int butch = 12;
 
     public static Vector<Vector<Double>> Image = new Vector<>();
 
@@ -41,9 +49,13 @@ public class MainVariables {
     public static int nnvXDisplacement;
     public static int nnvYDisplacement;
 
+    final public static File images = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-images.idx3-ubyte");
+    public static int imageNumber = 0;
+    final public static File labels = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-labels.idx1-ubyte");
+
     final public static File FONT_ALUNDRA_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"AlundraText.ttf");
     final public static File FONT_SPEAK_HEAVY_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"SpeakHeavy.ttf");
-    public static final String FONT_USED = "Speak-Heavy";
+    final public static String FONT_USED = "Speak-Heavy";
 
 
     public static class DrawKeyListener implements KeyListener {
@@ -94,6 +106,9 @@ public class MainVariables {
                         Neurons.get(0).set(i, rand);
                     }
                     break;
+                case 'i':
+                    imageNumber += 1;
+                    readImage(imageNumber);
                 default:
                     System.out.println(e.getKeyChar());
             }
