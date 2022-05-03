@@ -8,21 +8,11 @@ import static Mechanic.Mechanic.neuralNetwork;
 public class GameThreads {
     public static class GameLoop extends Thread {
         public void run() {
-            double previous = new Date().getTime();
-            double steps = 0;
             while (true) {
                 if (gameLoopOn) {
                     double loopStartTime = new Date().getTime();
-                    double elapsed = loopStartTime - previous;
-                    previous = new Date().getTime();
-                    steps += elapsed;
 
                     handleInput();
-
-                    while (steps >= millisecondsPerUpdate) {
-                        updateGameStats();
-                        steps -= millisecondsPerUpdate;
-                    }
 
                     frame.repaint();
                     nnvFrame.repaint();
@@ -36,7 +26,6 @@ public class GameThreads {
                         }
                     }
                 } else {
-                    previous = new Date().getTime();
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {
@@ -79,9 +68,6 @@ public class GameThreads {
                     neuralNetwork();
                 }
             }
-        }
-        public void updateGameStats() {
-
         }
     }
 }

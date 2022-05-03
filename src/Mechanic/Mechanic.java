@@ -4,107 +4,159 @@ import java.awt.*;
 import java.io.*;
 import java.util.Vector;
 
-import static Libraries.Methods.*;
+import static Libraries.Methods.visTrue;
 
 public class Mechanic extends MainVariables {
     void preparation() {
-        try {
-            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(Font.createFont(Font.TRUETYPE_FONT, FONT_SPEAK_HEAVY_TEXT));
-        } catch (IOException | FontFormatException e) {
-            e.printStackTrace();
-        }
-
-        Neurons.setSize(layers.length);                 //Full Neurons list setup
-        for (int i = 0; i < layers.length; i++) {
-            Neurons.set(i, new Vector<>());
-            Neurons.get(i).setSize(layers[i]);
-        }
-        for (int i = 0; i < inputs; i++) {
-            Neurons.get(0).set(i, 0.0);
-        }
-        NeuronNudges.setSize(butch);
-        for (int i = 0; i < butch; i++) {
-            NeuronNudges.set(i, new Vector<>());
-            NeuronNudges.get(i).setSize(layers.length);
-            for (int i1 = 0; i1 < layers.length; i1++) {
-                NeuronNudges.get(i).set(i1, new Vector<>());
-                NeuronNudges.get(i).get(i1).setSize(layers[i1]);
+        if (!loadNeuralNetwork(neuralNetworkSave)) {
+            Neurons.setSize(layers.length);                 //Full Neurons list setup
+            for (int i = 0; i < Neurons.size(); i++) {
+                Neurons.set(i, new Vector<>());
+                Neurons.get(i).setSize(layers[i]);
             }
-        }
-
-
-        Synapses.setSize(layers.length-1);              //Full Synapses list setup
-        for (int i = 0; i < layers.length-1; i++) {
-            Synapses.set(i, new Vector<>());
-            Synapses.get(i).setSize(Neurons.get(i).size());
-            for (int i1 = 0; i1 < Neurons.get(i).size(); i1++) {
-                Synapses.get(i).set(i1, new Vector<>());
-                Synapses.get(i).get(i1).setSize(Neurons.get(i+1).size());
-            }
-        }
-        SynapseNudges.setSize(butch);
-        for (int i = 0; i < butch; i++) {
-            SynapseNudges.set(i, new Vector<>());
-            SynapseNudges.get(i).setSize(layers.length - 1);
-            for (int i1 = 0; i1 < layers.length-1; i1++) {
-                SynapseNudges.get(i).set(i1, new Vector<>());
-                SynapseNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
-                for (int i2 = 0; i2 < Neurons.get(i1).size(); i2++) {
-                    SynapseNudges.get(i).get(i1).set(i2, new Vector<>());
-                    SynapseNudges.get(i).get(i1).get(i2).setSize(Neurons.get(i1+1).size());
+            Neurons.get(0).replaceAll(ignored -> 0.0);
+            NeuronNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                NeuronNudges.set(i, new Vector<>());
+                NeuronNudges.get(i).setSize(Neurons.size());
+                for (int i1 = 0; i1 < Neurons.size(); i1++) {
+                    NeuronNudges.get(i).set(i1, new Vector<>());
+                    NeuronNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
                 }
             }
-        }
 
-
-        Biases.setSize(layers.length);              //Full Biases list setup
-        for (int i = 1; i < layers.length; i++) {
-            Biases.set(i, new Vector<>());
-            Biases.get(i).setSize(layers[i]);
-        }
-        BiasNudges.setSize(butch);
-        for (int i = 0; i < butch; i++) {
-            BiasNudges.set(i, new Vector<>());
-            BiasNudges.get(i).setSize(layers.length);
-            for (int i1 = 1; i1 < layers.length; i1++) {
-                BiasNudges.get(i).set(i1, new Vector<>());
-                BiasNudges.get(i).get(i1).setSize(layers[i1]);
+            SynapseNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                SynapseNudges.set(i, new Vector<>());
+                SynapseNudges.get(i).setSize(Neurons.size() - 1);
+                for (int i1 = 0; i1 < Neurons.size() - 1; i1++) {
+                    SynapseNudges.get(i).set(i1, new Vector<>());
+                    SynapseNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
+                    for (int i2 = 0; i2 < Neurons.get(i1).size(); i2++) {
+                        SynapseNudges.get(i).get(i1).set(i2, new Vector<>());
+                        SynapseNudges.get(i).get(i1).get(i2).setSize(Neurons.get(i1 + 1).size());
+                    }
+                }
             }
+            BiasNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                BiasNudges.set(i, new Vector<>());
+                BiasNudges.get(i).setSize(Neurons.size());
+                for (int i1 = 1; i1 < Neurons.size(); i1++) {
+                    BiasNudges.get(i).set(i1, new Vector<>());
+                    BiasNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
+                }
+            }
+
+            perfectOutput.setSize(Neurons.get(Neurons.size()-1).size());
+
+
+            Synapses.setSize(Neurons.size() - 1);              //Full Synapses list setup
+            for (int i = 0; i < Neurons.size() - 1; i++) {
+                Synapses.set(i, new Vector<>());
+                Synapses.get(i).setSize(Neurons.get(i).size());
+                for (int i1 = 0; i1 < Neurons.get(i).size(); i1++) {
+                    Synapses.get(i).set(i1, new Vector<>());
+                    Synapses.get(i).get(i1).setSize(Neurons.get(i + 1).size());
+                }
+            }
+
+            Biases.setSize(Neurons.size());              //Full Biases list setup
+            for (int i = 1; i < Neurons.size(); i++) {
+                Biases.set(i, new Vector<>());
+                Biases.get(i).setSize(Neurons.get(i).size());
+            }
+
+            randomInitialize();
+
+
+        } else {
+            System.out.println("Layer setup inside the program has been ignored");
+            Neurons.setSize(Synapses.size()+1);                 //Neurons list setup according to the read file
+            for (int i = 0; i < Neurons.size(); i++) {
+                Neurons.set(i, new Vector<>());
+                if (i < Synapses.size())
+                    Neurons.get(i).setSize(Synapses.get(i).size());
+                else
+                    Neurons.get(i).setSize(Synapses.get(i-1).get(0).size());
+            }
+            Neurons.get(0).replaceAll(ignored -> 0.0);
+            NeuronNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                NeuronNudges.set(i, new Vector<>());
+                NeuronNudges.get(i).setSize(Neurons.size());
+                for (int i1 = 0; i1 < Neurons.size(); i1++) {
+                    NeuronNudges.get(i).set(i1, new Vector<>());
+                    NeuronNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
+                }
+            }
+
+            SynapseNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                SynapseNudges.set(i, new Vector<>());
+                SynapseNudges.get(i).setSize(Neurons.size() - 1);
+                for (int i1 = 0; i1 < Neurons.size() - 1; i1++) {
+                    SynapseNudges.get(i).set(i1, new Vector<>());
+                    SynapseNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
+                    for (int i2 = 0; i2 < Neurons.get(i1).size(); i2++) {
+                        SynapseNudges.get(i).get(i1).set(i2, new Vector<>());
+                        SynapseNudges.get(i).get(i1).get(i2).setSize(Neurons.get(i1 + 1).size());
+                    }
+                }
+            }
+            BiasNudges.setSize(butch);
+            for (int i = 0; i < butch; i++) {
+                BiasNudges.set(i, new Vector<>());
+                BiasNudges.get(i).setSize(Neurons.size());
+                for (int i1 = 1; i1 < Neurons.size(); i1++) {
+                    BiasNudges.get(i).set(i1, new Vector<>());
+                    BiasNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
+                }
+            }
+
+            perfectOutput.setSize(Neurons.get(Neurons.size()-1).size());
         }
-
-        perfectOutput.setSize(Neurons.get(Neurons.size()-1).size());
-
-        randomInitialize();
+        System.out.println("All lists has been successfully set up");
 
 
-        frame.add(drawPanel);
-        drawPanel.setBounds(frame.getWidth()/2-28*25/2, frame.getHeight()/2-37-28*25/2, 28*25, 28*25);
+        if (mode == MODE_VISUALIZATION) {
+            try {
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(Font.createFont(Font.TRUETYPE_FONT, FONT_SPEAK_HEAVY_TEXT));
+            } catch (IOException | FontFormatException e) {
+                e.printStackTrace();
+            }
 
-        frame.addKeyListener(new DrawKeyListener());
-        drawPanel.addMouseListener(new DrawMouseListener());
-        drawPanel.addMouseMotionListener(new DrawMouseMotionListener());
+            frame.add(drawPanel);
+            drawPanel.setBounds(frame.getWidth()/2-28*25/2, frame.getHeight()/2-37-28*25/2, 28*25, 28*25);
 
-        visTrue(frame);
+            frame.addKeyListener(new DrawKeyListener());
+            drawPanel.addMouseListener(new DrawMouseListener());
+            drawPanel.addMouseMotionListener(new DrawMouseMotionListener());
+
+            visTrue(frame);
 
 
-        nnvFrame.add(nnvPanel);
-        nnvPanel.setBounds(0, 0, nnvFrame.getWidth(), nnvFrame.getHeight());
+            nnvFrame.add(nnvPanel);
+            nnvPanel.setBounds(0, 0, nnvFrame.getWidth(), nnvFrame.getHeight());
 
-        nnvFrame.addMouseListener(new NNVMouseListener());
-        nnvFrame.addMouseMotionListener(new NNVMouseMotionListener());
-        nnvFrame.addMouseWheelListener(new NNVMouseWheelListener());
+            nnvFrame.addMouseListener(new NNVMouseListener());
+            nnvFrame.addMouseMotionListener(new NNVMouseMotionListener());
+            nnvFrame.addMouseWheelListener(new NNVMouseWheelListener());
 
-        visTrue(nnvFrame);
+            visTrue(nnvFrame);
 
-        gameLoop.start();
-        gameLoopOn = true;
+            gameLoop.start();
+            gameLoopOn = true;
+        }
 
         for (int i = 0; i < 5000; i++) {
-            readImage(imageNumber);
-            readAnswer(imageNumber);
-            neuralNetwork();
+            butchBackpropagation();
 
-            backpropagation();
+            System.out.println("A butch has been completed");
+            saveNeuralNetwork(neuralNetworkSave);
+            if (i % 10 == 0) {
+                saveNeuralNetwork(neuralNetworkBackup);
+            }
         }
     }
 
@@ -154,7 +206,7 @@ public class Mechanic extends MainVariables {
             }
 //            System.out.println(i + ": " + Neurons.get(Neurons.size()-1).get(i));
         }
-        System.out.println("Final guess: " + result + "\n");
+//        System.out.println("Final guess: " + result + "\n");
         neuralNetworkAnswer = result;
     }
     static void neuronActivationCalculation(int layer, int index) {
@@ -200,7 +252,7 @@ public class Mechanic extends MainVariables {
                 else
                     perfectOutput.set(i, 0.0);
             }
-            System.out.println(perfectOutput);
+//            System.out.println(perfectOutput);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -215,9 +267,10 @@ public class Mechanic extends MainVariables {
         return cost;    //0.0 = Perfect     10.0 = Wrong
     }
 
-    static void backpropagation() {
-        System.out.println("Total cost: " + costFunction());
+    static void butchBackpropagation() {
+//        System.out.println("Total cost: " + costFunction());
         for (int image = 0; image < butch; image++) {
+            imageNumber = (int) (Math.random()*60000);
             readImage(imageNumber);
             readAnswer(imageNumber);
             neuralNetwork();
@@ -267,7 +320,7 @@ public class Mechanic extends MainVariables {
 //            System.out.println(SynapseNudges);
             neuralNetwork();
         }
-        System.out.println("New total cost: " + costFunction());
+//        System.out.println("New total cost: " + costFunction());
 
         for (int i = 0; i < SynapseNudges.get(0).size(); i++) {      //Applying Synapse nudges
             for (int i1 = 0; i1 < SynapseNudges.get(0).get(i).size(); i1++) {
@@ -300,5 +353,33 @@ public class Mechanic extends MainVariables {
             else
                 perfectOutput.set(i, 0.0);
         }
+    }
+
+    static boolean loadNeuralNetwork(File load) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(load);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Biases = (Vector<Vector<Double>>) objectInputStream.readObject();
+            Synapses = (Vector<Vector<Vector<Double>>>) objectInputStream.readObject();
+            System.out.println("Neural network ["+load+"] has been successfully loaded");
+            return true;
+        } catch (IOException | ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    static void saveNewNeuralNetwork() {
+
+    }
+
+    static void saveNeuralNetwork(File save) {
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(save);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(Biases);
+            objectOutputStream.writeObject(Synapses);
+            objectOutputStream.close();
+            System.out.println("Neural network ["+save+"] has been successfully saved");
+        } catch (IOException ignored) {}
     }
 }

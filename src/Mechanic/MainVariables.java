@@ -9,14 +9,17 @@ import java.util.Vector;
 import static Libraries.Methods.*;
 import static Mechanic.Mechanic.*;
 
-public class MainVariables {
+public abstract class MainVariables {
     public static JFrame frame = getFrame("AI Prototype", null, 900, 900, null, null, false);
     public static JFrame nnvFrame = getFrame("Neural Network Visualization", null, 1000, 1000, null, null, false);
     public static DrawPanel drawPanel = new DrawPanel();
     public static NNVPanel nnvPanel = new NNVPanel();
 
+    public static final int MODE_VISUALIZATION = 0;
+    public static final int MODE_OPTIMIZATION = 1;
+    public static int mode = 1;
+
     public static GameThreads.GameLoop gameLoop = new GameThreads.GameLoop();
-    public static double millisecondsPerUpdate = 1000d / 60;
     public static boolean gameLoopOn;
 
     public static Vector<Vector<Double>> Neurons = new Vector<>();
@@ -33,12 +36,8 @@ public class MainVariables {
 
     public static int neuralNetworkAnswer = -1;
     public static Vector<Double> perfectOutput = new Vector<>();
-    public static Vector<Double> costs = new Vector<>();
-    public static double averageCost;
 
-    public static int butch = 12;
-
-    public static Vector<Vector<Double>> Image = new Vector<>();
+    public static int butch = 12;   //High = effective + long learning    Low = bad + fast learning
 
     public static boolean pressedLMB;
     public static boolean pressedRMB;
@@ -50,12 +49,14 @@ public class MainVariables {
     public static int nnvYDisplacement;
 
     final public static File images = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-images.idx3-ubyte");
-    public static int imageNumber = 0;
+    public static int imageNumber;
     final public static File labels = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-labels.idx1-ubyte");
 
-    final public static File FONT_ALUNDRA_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"AlundraText.ttf");
     final public static File FONT_SPEAK_HEAVY_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"SpeakHeavy.ttf");
     final public static String FONT_USED = "Speak-Heavy";
+
+    final public static File neuralNetworkSave = new File("resources"+SEPARATOR+"neural network"+SEPARATOR+"neural_network.txt");
+    final public static File neuralNetworkBackup = new File("resources"+SEPARATOR+"neural network"+SEPARATOR+"neural_network_backup.txt");
 
 
     public static class DrawKeyListener implements KeyListener {
@@ -107,7 +108,7 @@ public class MainVariables {
                     }
                     break;
                 case 'i':
-                    imageNumber += 1;
+                    imageNumber = (int) (Math.random()*60000);
                     readImage(imageNumber);
                 default:
                     System.out.println(e.getKeyChar());
