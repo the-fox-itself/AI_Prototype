@@ -2,12 +2,17 @@ package Mechanic;
 
 import java.awt.*;
 import java.io.*;
+import java.util.Date;
 import java.util.Vector;
 
 import static Libraries.Methods.visTrue;
 
 public class Mechanic extends MainVariables {
     void preparation() {
+        byte c = 0;
+        c += 128;
+        System.out.println(c);
+
         if (!loadNeuralNetwork(neuralNetworkSave)) {
             Neurons.setSize(layers.length);                 //Full Neurons list setup
             for (int i = 0; i < Neurons.size(); i++) {
@@ -23,6 +28,12 @@ public class Mechanic extends MainVariables {
                     NeuronNudges.get(i).set(i1, new Vector<>());
                     NeuronNudges.get(i).get(i1).setSize(Neurons.get(i1).size());
                 }
+            }
+
+            zs.setSize(Neurons.size());
+            for (int i = 0; i < zs.size(); i++) {
+                zs.set(i, new Vector<>());
+                zs.get(i).setSize(Neurons.get(i).size());
             }
 
             SynapseNudges.setSize(butch);
@@ -91,6 +102,12 @@ public class Mechanic extends MainVariables {
                 }
             }
 
+            zs.setSize(Neurons.size());
+            for (int i = 0; i < zs.size(); i++) {
+                zs.set(i, new Vector<>());
+                zs.get(i).setSize(Neurons.get(i).size());
+            }
+
             SynapseNudges.setSize(butch);
             for (int i = 0; i < butch; i++) {
                 SynapseNudges.set(i, new Vector<>());
@@ -149,12 +166,26 @@ public class Mechanic extends MainVariables {
             gameLoopOn = true;
         }
 
+        try {
+            if (images.exists()) {
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(images));
+                imageBytes = bufferedInputStream.readAllBytes();
+            }
+            if (labels.exists()) {
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(labels));
+                labelBytes = bufferedInputStream.readAllBytes();
+            }
+        } catch (IOException ignored) {}
+
+        testNeuralNetwork();
+
+
         for (int i = 0; i < 5000; i++) {
             butchBackpropagation();
 
-            System.out.println("A butch has been completed");
-            saveNeuralNetwork(neuralNetworkSave);
-            if (i % 10 == 0) {
+//            System.out.println("A butch has been completed");
+            if (i % 100 == 0) {
+                saveNeuralNetwork(neuralNetworkSave);
                 saveNeuralNetwork(neuralNetworkBackup);
             }
         }
@@ -192,113 +223,81 @@ public class Mechanic extends MainVariables {
             for (int i = 1; i < Neurons.size(); i++) {
                 for (int i1 = 0; i1 < Neurons.get(i).size(); i1++) {
                     neuronActivationCalculation(i, i1);
-//                    System.out.println(Neurons.get(i).get(i1));
                 }
-//                System.out.println();
             }
         }
         double highestValue = 0;
         int result = 0;
         for (int i = 0; i < Neurons.get(Neurons.size()-1).size(); i++) {
-            if (Neurons.get(Neurons.size()-1).get(i) > highestValue) {
-                highestValue = Neurons.get(Neurons.size()-1).get(i);
+            double neuron = Neurons.get(Neurons.size()-1).get(i);
+            if (neuron > highestValue) {
+                highestValue = neuron;
                 result = i;
             }
-//            System.out.println(i + ": " + Neurons.get(Neurons.size()-1).get(i));
         }
-//        System.out.println("Final guess: " + result + "\n");
         neuralNetworkAnswer = result;
     }
     static void neuronActivationCalculation(int layer, int index) {
         if (layer != 0) {
-            int numberOfInputs = Neurons.get(layer - 1).size();
-            double sum = 0;
-            for (int i = 0; i < numberOfInputs; i++) {
-                sum += Synapses.get(layer - 1).get(i).get(index) * Neurons.get(layer - 1).get(i);
+            double z = -Biases.get(layer).get(index);
+            for (int i = 0; i < Neurons.get(layer - 1).size(); i++) {
+                z += Neurons.get(layer - 1).get(i) * Synapses.get(layer - 1).get(i).get(index);
             }
-            sum -= Biases.get(layer).get(index);
-            sum = sigmoid(sum);
-            Neurons.get(layer).set(index, sum);
+            zs.get(layer).set(index, z);
+            Neurons.get(layer).set(index, sigmoid(z));
         }
     }
 
     static void readImage(int num) {
-        try {
-            FileInputStream fileInputStream = new FileInputStream(images);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-            byte[] f = bufferedInputStream.readAllBytes();
-            int index = 0;
-            for (int i = 16+784*num; i < 16+784*(num+1); i++) {
-                double color = f[i];
-                if (f[i] < 0) {
-                    color = 127+f[i]-(-128);
-                }
-                Neurons.get(0).set(index, color/255);
-                index++;
+        int index = 0;
+        for (int i = 16 + 784 * num; i < 16 + 784 * (num + 1); i++) {
+            double color = imageBytes[i];
+            if (imageBytes[i] < 0) {
+                color += 256;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            Neurons.get(0).set(index, color / 255);
+            index++;
         }
     }
     static void readAnswer(int num) {
-        try {
-            FileInputStream fileInputStream = new FileInputStream(labels);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-            byte[] f = bufferedInputStream.readAllBytes();
-            int answer = f[8+num];
-            for (int i = 0; i < perfectOutput.size(); i++) {
-                if (i == answer)
-                    perfectOutput.set(i, 1.0);
-                else
-                    perfectOutput.set(i, 0.0);
-            }
-//            System.out.println(perfectOutput);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        rightAnswer = labelBytes[8 + num];
+        perfectOutput.replaceAll(ignored -> 0.0);
+        perfectOutput.set(rightAnswer, 1.0);
     }
 
     static double costFunction() {
         double cost = 0;
         for (int i = 0; i < Neurons.get(Neurons.size()-1).size(); i++) {
-            System.out.println(perfectOutput.get(i));
             cost += Math.pow(Neurons.get(Neurons.size()-1).get(i)-perfectOutput.get(i), 2);
         }
         return cost;    //0.0 = Perfect     10.0 = Wrong
     }
 
     static void butchBackpropagation() {
-//        System.out.println("Total cost: " + costFunction());
         for (int image = 0; image < butch; image++) {
             imageNumber = (int) (Math.random()*60000);
             readImage(imageNumber);
             readAnswer(imageNumber);
             neuralNetwork();
-            imageNumber += 1;
+            imagesUsed.add(imageNumber);
+            costsBefore.add(costFunction());
 
             for (int i = 0; i < Neurons.get(Neurons.size() - 1).size(); i++) {
                 NeuronNudges.get(image).get(Neurons.size() - 1).set(i, Neurons.get(Neurons.size() - 1).get(i) - perfectOutput.get(i));
             }
 
+
             for (int layer = Neurons.size() - 1; layer > 0; layer--) {    //Going from the last layer to second
                 for (int neuron = 0; neuron < Neurons.get(layer).size(); neuron++) {     //Calculating Synapse derivatives for each layer
                     for (int prNeuron = 0; prNeuron < Neurons.get(layer - 1).size(); prNeuron++) {
-                        double current_neuron = Neurons.get(layer).get(neuron);
                         double previous_neuron = Neurons.get(layer - 1).get(prNeuron);
-                        double z = Biases.get(layer).get(neuron);
-                        for (int i = 0; i < Neurons.get(layer - 1).size(); i++) {
-                            z += Neurons.get(layer - 1).get(i) * Synapses.get(layer - 1).get(i).get(neuron);
-                        }
+                        double z = zs.get(layer).get(neuron);
                         double synapse_derivative = previous_neuron * sigmoid_derivative(z) * 2 * NeuronNudges.get(image).get(layer).get(neuron);
                         SynapseNudges.get(image).get(layer - 1).get(prNeuron).set(neuron, -synapse_derivative);    //Operation -a needed to be applied
                     }
                 }
                 for (int neuron = 0; neuron < Neurons.get(layer).size(); neuron++) {    //Calculating Bias derivatives for each layer
-                    double current_neuron = Neurons.get(layer).get(neuron);
-                    double z = Biases.get(layer).get(neuron);
-                    for (int i = 0; i < Neurons.get(layer - 1).size(); i++) {
-                        z += Neurons.get(layer - 1).get(i) * Synapses.get(layer - 1).get(i).get(neuron);
-                    }
+                    double z = zs.get(layer).get(neuron);
                     double bias_derivative = sigmoid_derivative(z) * 2 * NeuronNudges.get(image).get(layer).get(neuron);
                     BiasNudges.get(image).get(layer).set(neuron, -bias_derivative);    //Operation -a needed to be applied
                 }
@@ -306,10 +305,7 @@ public class Mechanic extends MainVariables {
                     for (int prNeuron = 0; prNeuron < Neurons.get(layer - 1).size(); prNeuron++) {
                         double neuron_derivative = 0.0;
                         for (int neuron = 0; neuron < Neurons.get(layer).size(); neuron++) {
-                            double z = Biases.get(layer).get(neuron);
-                            for (int i = 0; i < Neurons.get(layer - 1).size(); i++) {
-                                z += Neurons.get(layer - 1).get(i) * Synapses.get(layer - 1).get(i).get(neuron);
-                            }
+                            double z = zs.get(layer).get(neuron);
                             neuron_derivative += sigmoid_derivative(z) * 2 * NeuronNudges.get(image).get(layer).get(neuron) * Synapses.get(layer - 1).get(prNeuron).get(neuron);
                         }
                         NeuronNudges.get(image).get(layer - 1).set(prNeuron, -neuron_derivative);
@@ -317,10 +313,10 @@ public class Mechanic extends MainVariables {
                 }
             }
 
-//            System.out.println(SynapseNudges);
+
             neuralNetwork();
         }
-//        System.out.println("New total cost: " + costFunction());
+
 
         for (int i = 0; i < SynapseNudges.get(0).size(); i++) {      //Applying Synapse nudges
             for (int i1 = 0; i1 < SynapseNudges.get(0).get(i).size(); i1++) {
@@ -344,6 +340,26 @@ public class Mechanic extends MainVariables {
                 Biases.get(i).set(i1, Biases.get(i).get(i1) + average_nudge);
             }
         }
+
+
+//        double sum = 0;
+//        for (double d : costsBefore) {
+//            sum += d;
+//        }
+//        double initial_cost = sum/costsBefore.size();
+//        costsBefore = new Vector<>();
+//
+//        sum = 0;
+//        for (int i : imagesUsed) {
+//            readImage(i);
+//            readAnswer(i);
+//            neuralNetwork();
+//            sum += costFunction();
+//        }
+//        double new_cost = sum/imagesUsed.size();
+//        imagesUsed = new Vector<>();
+//
+//        System.out.println((double) ((int)((initial_cost-new_cost)*1000))/1000);
     }
 
     static void setPerfectOutput(int correctResult) {
@@ -382,4 +398,17 @@ public class Mechanic extends MainVariables {
             System.out.println("Neural network ["+save+"] has been successfully saved");
         } catch (IOException ignored) {}
     }
+
+    void testNeuralNetwork() {
+        double successes = 0;
+        for (int i = 0; i < 30000; i++) {
+            readImage(i);
+            readAnswer(i);
+            neuralNetwork();
+            if (rightAnswer == neuralNetworkAnswer) {
+                successes += 1;
+            }
+        }
+        System.out.println((successes/30000*100)+"%");
+    }       // 10.9%/11%      9.9%/10.4%/13.5%/15.2%
 }

@@ -26,6 +26,8 @@ public abstract class MainVariables {
     public static Vector<Vector<Double>> Biases = new Vector<>();
     public static Vector<Vector<Vector<Double>>> Synapses = new Vector<>();
 
+    public static Vector<Vector<Double>> zs = new Vector<>();
+
     public static Vector<Vector<Vector<Double>>> BiasNudges = new Vector<>();
     public static Vector<Vector<Vector<Vector<Double>>>> SynapseNudges = new Vector<>();
     public static Vector<Vector<Vector<Double>>> NeuronNudges = new Vector<>();
@@ -36,6 +38,10 @@ public abstract class MainVariables {
 
     public static int neuralNetworkAnswer = -1;
     public static Vector<Double> perfectOutput = new Vector<>();
+    public static int rightAnswer;
+
+    public static Vector<Integer> imagesUsed = new Vector<>();
+    public static Vector<Double> costsBefore = new Vector<>();
 
     public static int butch = 12;   //High = effective + long learning    Low = bad + fast learning
 
@@ -51,6 +57,9 @@ public abstract class MainVariables {
     final public static File images = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-images.idx3-ubyte");
     public static int imageNumber;
     final public static File labels = new File("resources"+SEPARATOR+"training data"+SEPARATOR+"train-labels.idx1-ubyte");
+
+    public static byte[] imageBytes;
+    public static byte[] labelBytes;
 
     final public static File FONT_SPEAK_HEAVY_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"SpeakHeavy.ttf");
     final public static String FONT_USED = "Speak-Heavy";
@@ -100,6 +109,7 @@ public abstract class MainVariables {
                     break;
                 case ' ':
                     neuralNetwork();
+                    System.out.println(neuralNetworkAnswer);
                     break;
                 case 'r':
                     for (int i = 0; i < Neurons.get(0).size(); i++) {
@@ -110,6 +120,7 @@ public abstract class MainVariables {
                 case 'i':
                     imageNumber = (int) (Math.random()*60000);
                     readImage(imageNumber);
+                    break;
                 default:
                     System.out.println(e.getKeyChar());
             }
