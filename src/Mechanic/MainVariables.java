@@ -15,9 +15,9 @@ public abstract class MainVariables {
     public static DrawPanel drawPanel = new DrawPanel();
     public static NNVPanel nnvPanel = new NNVPanel();
 
-    public static final int MODE_VISUALIZATION = 0;
-    public static final int MODE_OPTIMIZATION = 1;
-    public static int mode = 1;
+    public static final int MODE_OPTIMIZATION = 0;
+    public static final int MODE_VISUALIZATION = 1;
+    public static int mode;
 
     public static GameThreads.GameLoop gameLoop = new GameThreads.GameLoop();
     public static boolean gameLoopOn;
@@ -32,9 +32,7 @@ public abstract class MainVariables {
     public static Vector<Vector<Vector<Vector<Double>>>> SynapseNudges = new Vector<>();
     public static Vector<Vector<Vector<Double>>> NeuronNudges = new Vector<>();
 
-    public static int inputs = 784; //784     2
-    public static int outputs = 10; //10    3
-    public static int[] layers = {inputs, 16, 16, outputs}; //16, 16         2
+    public static int[] layers = {784, 16, 16, 10};
 
     public static int neuralNetworkAnswer = -1;
     public static Vector<Double> perfectOutput = new Vector<>();
@@ -44,6 +42,8 @@ public abstract class MainVariables {
     public static Vector<Double> costsBefore = new Vector<>();
 
     public static int butch = 12;   //High = effective + long learning    Low = bad + fast learning
+
+    public static boolean neuralNetworkSetUp;
 
     public static boolean pressedLMB;
     public static boolean pressedRMB;
@@ -64,8 +64,7 @@ public abstract class MainVariables {
     final public static File FONT_SPEAK_HEAVY_TEXT = new File("resources"+SEPARATOR+"fonts"+SEPARATOR+"SpeakHeavy.ttf");
     final public static String FONT_USED = "Speak-Heavy";
 
-    final public static File neuralNetworkSave = new File("resources"+SEPARATOR+"neural network"+SEPARATOR+"neural_network.txt");
-    final public static File neuralNetworkBackup = new File("resources"+SEPARATOR+"neural network"+SEPARATOR+"neural_network_backup.txt");
+    final public static File neuralNetworkSave = new File("resources"+SEPARATOR+"neural networks"+SEPARATOR+"neural_network.txt");
 
 
     public static class DrawKeyListener implements KeyListener {

@@ -333,8 +333,8 @@ public abstract class Methods {
         return LCM(a,LCM(b,c));
     }
 
-    public static String readLine() {
-        System.out.print("<User> ");
+    public static String readLine(String line) {
+        System.out.print(line);
         String returnString = null;
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try {

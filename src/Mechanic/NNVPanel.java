@@ -69,11 +69,11 @@ public class NNVPanel extends JPanel {
                     int totalHeight = Neurons.get(layer).size()*dy;
                     int totalHeightNextLayer = Neurons.get(layer+1).size()*dy;
                     double synapseValue = Synapses.get(layer).get(startNeuron).get(endNeuron);
-                    if (synapseValue < 0) {
-                        g2D.setColor(new Color(0, 193, 255, (int) (Math.abs(synapseValue)/2*100)));
-                    } else {
-                        g2D.setColor(new Color(255, 105, 105, (int) (Math.abs(synapseValue)/2*100)));
-                    }
+//                    if (synapseValue < 0) {
+//                        g2D.setColor(new Color(0, 193, 255, (int) (Math.abs(synapseValue)/2*100)));
+//                    } else {
+//                        g2D.setColor(new Color(255, 105, 105, (int) (Math.abs(synapseValue)/2*100)));
+//                    }
                     g2D.drawLine(layer*dx+dxLeftSide + neuronWidth + nnvXDisplacement, nnvFrame.getHeight()/2-totalHeight/2+startNeuron*dy + neuronHeight/2 + nnvYDisplacement, (layer+1)*dx+dxLeftSide + nnvXDisplacement, nnvFrame.getHeight()/2-totalHeightNextLayer/2+endNeuron*dy + neuronHeight/2 + nnvYDisplacement);
                     g2D.setColor(Color.BLACK);
                 }

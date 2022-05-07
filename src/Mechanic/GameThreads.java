@@ -25,12 +25,6 @@ public class GameThreads {
                         } catch (InterruptedException ignored) {
                         }
                     }
-                } else {
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         }
