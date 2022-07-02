@@ -204,42 +204,73 @@ public class Mechanic extends MainVariables {                                   
                     break;
                 case "train evolution":
                 case "train e":
-                    //Set up empty Neural Network
+                    //Set up empty clone storage system
                     layers = new int[]{784, 10};
-                    Neurons.setSize(layers.length);                                                                     //Full Neurons list setup
-                    for (int i = 0; i < Neurons.size(); i++) {
-                        Neurons.set(i, new Vector<>());
-                        Neurons.get(i).setSize(layers[i]);
-                    }
+                    int inputs = 784;
+                    int outputs = 10;
+                    int clone_number = 100;
+                    double[][][] cloneNN = new double[][][]{ { {3, 1, 6.8}, {4, 1, 1.9} }, { {1} }, { {1, 6, 0.3} } };
 
-                    Synapses.setSize(Neurons.size() - 1);                                                               //Full Synapses list setup
-                    for (int i = 0; i < Neurons.size() - 1; i++) {
-                        Synapses.set(i, new Vector<>());
-                        Synapses.get(i).setSize(Neurons.get(i).size());
-                        for (int i1 = 0; i1 < Neurons.get(i).size(); i1++) {
-                            Synapses.get(i).set(i1, new Vector<>());
-                            Synapses.get(i).get(i1).setSize(Neurons.get(i + 1).size());
+                    Vector<Vector<Vector<Double>>> NeuronActivations = new Vector<>();
+                    NeuronActivations.setSize(clone_number);
+                    for (int i = 0; i < NeuronActivations.size(); i++) {
+                        NeuronActivations.set(i, new Vector<>());
+                        NeuronActivations.get(i).setSize(layers.length);
+                        for (int i1 = 0; i1 < NeuronActivations.get(i).size(); i1++) {
+                            NeuronActivations.get(i).set(i1, new Vector<>());
+                            NeuronActivations.get(i).get(i1).setSize(layers[i1]);
+                        }
+                        NeuronActivations.get(i).get(0).replaceAll(ignored -> 0.0);
+                    }
+                    Vector<Vector<Vector<Integer>>> NeuronFunctions = new Vector<>();
+                    NeuronFunctions.setSize(clone_number);
+                    for (int i = 0; i < NeuronFunctions.size(); i++) {
+                        NeuronFunctions.set(i, new Vector<>());
+                        NeuronFunctions.get(i).setSize(layers.length);
+                        for (int i1 = 0; i1 < NeuronFunctions.get(i).size(); i1++) {
+                            NeuronFunctions.get(i).set(i1, new Vector<>());
+                            NeuronFunctions.get(i).get(i1).setSize(layers[i1]);
                         }
                     }
-
-//                    Biases.setSize(Neurons.size());                                                                     //Full Biases list setup
-//                    for (int i = 1; i < Neurons.size(); i++) {
-//                        Biases.set(i, new Vector<>());
-//                        Biases.get(i).setSize(Neurons.get(i).size());
-//                    }
-
-                    zs.setSize(Neurons.size());
-                    for (int i = 0; i < zs.size(); i++) {
-                        zs.set(i, new Vector<>());
-                        zs.get(i).setSize(Neurons.get(i).size());
+                    Vector<Vector<Vector<Vector<Double>>>> SynapseWeights = new Vector<>();
+                    SynapseWeights.setSize(clone_number);
+                    for (int i = 0; i < SynapseWeights.size(); i++) {
+                        SynapseWeights.set(i, new Vector<>());
+                        SynapseWeights.get(i).setSize(layers.length - 1);
+                        for (int i1 = 0; i1 < SynapseWeights.get(i).size(); i1++) {
+                            SynapseWeights.get(i).set(i1, new Vector<>());
+                            SynapseWeights.get(i).get(i1).setSize(layers[i1]);
+                            for (int i2 = 0; i2 < SynapseWeights.get(i).get(i1).size(); i2++) {
+                                SynapseWeights.get(i).get(i1).set(i2, new Vector<>());
+                                SynapseWeights.get(i).get(i1).get(i2).setSize(layers[i1 + 1]);
+                            }
+                        }
                     }
-                    Neurons.get(0).replaceAll(ignored -> 0.0);
-                    perfectOutput.setSize(Neurons.get(Neurons.size()-1).size());
+                    Vector<Vector<Vector<Double>>> Z = new Vector<>();
+                    Z.setSize(clone_number);
+                    for (int i = 0; i < Z.size(); i++) {
+                        Z.set(i, new Vector<>());
+                        Z.get(i).setSize(layers.length);
+                        for (int i1 = 0; i1 < Z.get(i).size(); i1++) {
+                            Z.get(i).set(i1, new Vector<>());
+                            Z.get(i).get(i1).setSize(layers[i1]);
+                        }
+                    }
+                    perfectOutput.setSize(layers[layers.length-1]);
                     neuralNetworkSetUp = true;
 
-                    int clone_number = 100;
-                    for (int generations = 0; generations < 100; generations++) {
-                        //Create mutated clones
+                    //Create mutated clones
+                    for (int clone = 0; clone < clone_number; clone++) {
+                        int add;
+                        int change;
+                        int disable;
+                        int neuron;
+                        int function;
+                        int remove;
+                        for (int i = 0; i < Synapses.get(clone).size(); i++) {
+                            for (int i1 = 0; i1 < Synapses.get())
+                        }
+
                         int action = (int) (Math.random() * 6);
                         switch (action) {
                             case 0:     //Add synapse                           (if there is a place to add one)
@@ -262,13 +293,13 @@ public class Mechanic extends MainVariables {                                   
                                 break;
 
                         }
-
-                        //Test mutated clones
-
-
-                        //Save the best clone and pass its Neural Network to the next ones
-
                     }
+
+                    //Test mutated clones
+
+
+                    //Save the best clone and pass its Neural Network to the next ones
+
                     break;
                 case "test":
                     if (neuralNetworkSetUp) {
@@ -435,31 +466,31 @@ public class Mechanic extends MainVariables {                                   
             return Double.NaN;
         }
     }
-    static double SIG(double x) {
+    static double SIG(double x) {                                                                                       // 0
         return sigmoid(x);
     }
-    static double LIN(double x) {
+    static double LIN(double x) {                                                                                       // 1
         return LIN(x, 1);
     }
     static double LIN(double x, double multiplier) {
         return x*multiplier;
     }
-    static double SQR(double x) {
+    static double SQR(double x) {                                                                                       // 2
         return x*x;
     }
-    static double SIN(double x) {
+    static double SIN(double x) {                                                                                       // 3
         return Math.sin(x);
     }
-    static double ABS(double x) {
+    static double ABS(double x) {                                                                                       // 4
         return Math.abs(x);
     }
-    static double REL(double x) {
+    static double REL(double x) {                                                                                       // 5
         return ReLU(x);
     }
-    static double GAU(double x, double height, double center, double standard_deviation) {
+    static double GAU(double x, double height, double center, double standard_deviation) {                              // 6
         return height * Math.pow(Math.E, -Math.pow(x-center, 2)/(2*Math.pow(standard_deviation, 2)));
     }
-    static double LAT(double x) {
+    static double LAT(double x) {                                                                                       // 7
         return 0;
     }
 
