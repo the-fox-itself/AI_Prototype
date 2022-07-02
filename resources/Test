@@ -1,0 +1,18 @@
+SIG
+Initial accuracy: 12.67333%
+
+1/butch; 6000 butches:      1 m 6 s         9.748%
+1/butch; 60000 butches:     12 m 22 s       9.035%
+2/butch; 6000 butches:      1 m 54 s        15.058%
+2/butch; 60000 butches:     19 m 50 s       10.441%
+100/butch; 1000 butches:    13 m 36 s       10.736%
+
+
+* Visualize backpropagation and change in weights and biases
+
+
+
+ReLU
+Initial accuracy: 12.08%
+
+1/butch; 6000 butches:      1 m 1 s         9.736%

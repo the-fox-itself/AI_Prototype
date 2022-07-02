@@ -234,7 +234,7 @@ public abstract class Methods {
         returnFrame.setSize(width, height);
         returnFrame.setIconImage(icon);
         returnFrame.setLayout(layout);
-        returnFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        returnFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         returnFrame.setLocationRelativeTo(locationRelativeTo);
         returnFrame.setResizable(isResizable);
 
@@ -426,8 +426,12 @@ public abstract class Methods {
 
             clip.setFramePosition(0);
             clip.start();
+            Thread.sleep(2000);
+            clip.stop();
         } catch (IOException | UnsupportedAudioFileException | LineUnavailableException exc) {
             exc.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

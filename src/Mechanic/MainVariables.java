@@ -8,12 +8,15 @@ import java.util.Vector;
 
 import static Libraries.Methods.*;
 import static Mechanic.Mechanic.*;
+import static Mechanic.Panels.*;
 
 public abstract class MainVariables {
     public static JFrame frame = getFrame("AI Prototype", null, 900, 900, null, null, false);
     public static JFrame nnvFrame = getFrame("Neural Network Visualization", null, 1000, 1000, null, null, false);
+    public static JFrame modelFrame = getFrame("Neural Network Model", null, 1000, 1000, null, null, false);
     public static DrawPanel drawPanel = new DrawPanel();
     public static NNVPanel nnvPanel = new NNVPanel();
+    public static ModelPanel modelPanel = new ModelPanel();
 
     public static final int MODE_OPTIMIZATION = 0;
     public static final int MODE_VISUALIZATION = 1;
@@ -21,6 +24,8 @@ public abstract class MainVariables {
 
     public static GameThreads.GameLoop gameLoop = new GameThreads.GameLoop();
     public static boolean gameLoopOn;
+    public static GameThreads.ModelGameLoop modelGameLoop = new GameThreads.ModelGameLoop();
+    public static boolean modelGameLoopOn;
 
     public static Vector<Vector<Double>> Neurons = new Vector<>();
     public static Vector<Vector<Double>> Biases = new Vector<>();
@@ -65,6 +70,8 @@ public abstract class MainVariables {
     final public static String FONT_USED = "Speak-Heavy";
 
     final public static File neuralNetworkSave = new File("resources"+SEPARATOR+"neural networks"+SEPARATOR+"neural_network.txt");
+
+    final public static File soundFile = new File("resources"+SEPARATOR+"sounds"+SEPARATOR+"Volume Alpha 08. Minecraft.mp3");
 
 
     public static class DrawKeyListener implements KeyListener {
@@ -119,6 +126,11 @@ public abstract class MainVariables {
                 case 'i':
                     imageNumber = (int) (Math.random()*60000);
                     readImage(imageNumber);
+                    readAnswer(imageNumber);
+                    neuralNetwork();
+                    break;
+                case 'b':
+                    backpropagation();
                     break;
                 default:
                     System.out.println(e.getKeyChar());
@@ -232,6 +244,53 @@ public abstract class MainVariables {
     }
 
     public static class NNVMouseWheelListener implements MouseWheelListener {
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+
+        }
+    }
+
+
+    public static class ModelMouseListener implements MouseListener {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+
+        }
+    }
+
+    public static class ModelMouseMotionListener implements MouseMotionListener {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+
+        }
+    }
+
+    public static class ModelMouseWheelListener implements MouseWheelListener {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
 

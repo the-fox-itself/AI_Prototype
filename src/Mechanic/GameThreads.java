@@ -31,7 +31,7 @@ public class GameThreads {
         public void handleInput() {
             if (pressedLMB && mouseX <= 28*25 && mouseX >= 0 && mouseY <= 28*25 && mouseY >= 0) {
                 if (Neurons.get(0).get(mouseX/25 + mouseY/25*28)+0.01 <= 1.0) {
-                    Neurons.get(0).set(mouseX / 25 + mouseY / 25 * 28, Neurons.get(0).get(mouseX / 25 + mouseY / 25 * 28) + 0.01);
+                    Neurons.get(0).set(mouseX / 25 + mouseY / 25 * 28, Neurons.get(0).get(mouseX / 25 + mouseY / 25 * 28) + 0.1);
                     neuralNetwork();
 //                    if ((mouseX / 25 + mouseY / 25 * 28) % 28 != 0) {         //left
 //                        if (Neurons.get(0).get(mouseX / 25 + mouseY / 25 * 28 - 1)+0.01 <= 1.0)
@@ -55,13 +55,39 @@ public class GameThreads {
                 }
             } else if (pressedRMB && mouseX <= 28*25 && mouseX >= 0 && mouseY <= 28*25 && mouseY >= 0) {
                 if (Neurons.get(0).get(mouseX/25 + mouseY/25*28)-0.01 >= 0.0) {
-                    Neurons.get(0).set(mouseX / 25 + mouseY / 25 * 28, Neurons.get(0).get(mouseX / 25 + mouseY / 25 * 28) - 0.01);
+                    Neurons.get(0).set(mouseX / 25 + mouseY / 25 * 28, Neurons.get(0).get(mouseX / 25 + mouseY / 25 * 28) - 0.1);
                     neuralNetwork();
                 } else {
                     Neurons.get(0).set(mouseX / 25 + mouseY / 25 * 28, 0.0);
                     neuralNetwork();
                 }
             }
+        }
+    }
+
+    public static class ModelGameLoop extends Thread {
+        public void run() {
+            while (true) {
+                if (modelGameLoopOn) {
+                    double loopStartTime = new Date().getTime();
+
+                    handleInput();
+
+                    modelFrame.repaint();
+
+                    double loopSlot = 10;
+                    double endTime = loopStartTime + loopSlot;
+                    while (new Date().getTime() < endTime) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        public void handleInput() {
+
         }
     }
 }
