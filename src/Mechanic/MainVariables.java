@@ -39,6 +39,15 @@ public abstract class MainVariables {
 
     public static int[] layers = {784, 16, 16, 10};
 
+    public static final int FUNCTION_SIG = 0;
+    public static final int FUNCTION_LIN = 1;
+    public static final int FUNCTION_SQR = 2;
+    public static final int FUNCTION_SIN = 3;
+    public static final int FUNCTION_ABS = 4;
+    public static final int FUNCTION_REL = 5;
+    public static final int FUNCTION_GAU = 6;
+    public static final int FUNCTION_LAT = 7;
+
     public static int neuralNetworkAnswer = -1;
     public static Vector<Double> perfectOutput = new Vector<>();
     public static int rightAnswer;
