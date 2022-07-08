@@ -28,8 +28,12 @@ public abstract class MainVariables {
     public static boolean modelGameLoopOn;
 
     public static Vector<Vector<Double>> Neurons = new Vector<>();
+    public static Vector<Vector<Integer>> NeuronFunctions = new Vector<>();
     public static Vector<Vector<Double>> Biases = new Vector<>();
     public static Vector<Vector<Vector<Double>>> Synapses = new Vector<>();
+    public static Vector<Vector<Vector<Vector<Double>>>> SynapsesE = new Vector<>();
+
+    public static boolean evolutionTraining;
 
     public static Vector<Vector<Double>> zs = new Vector<>();
 
