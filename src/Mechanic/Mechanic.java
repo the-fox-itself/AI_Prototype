@@ -207,9 +207,9 @@ public class Mechanic extends MainVariables {                                   
                 case "train e":
                     //Set up empty clone storage system
                     layers = new int[]{784, 10};
-                    int generation_number = 100;
+                    int generation_number = 1000;
                     int clone_number = 100;
-                    int trainingImagesNumber = 10;
+                    int trainingImagesNumber = 50;
 
                     Vector<Vector<Vector<Integer>>> EvolutionNeurons = new Vector<>();
                     EvolutionNeurons.setSize(clone_number);
@@ -250,7 +250,7 @@ public class Mechanic extends MainVariables {                                   
                         int neuronActions   = 0;
                         int functionActions = 0;
                         int removeActions   = 0;
-                        for (int clone = 1; clone < clone_number; clone++) {
+                        for (int clone = 1; clone < clone_number; clone++) {             //~ 600-1000 mutations / s
                             Vector<Vector<Vector<Vector<Double>>>> CloneSynapses = EvolutionSynapses.get(clone);        //Translates values to EvolutionSynapses
                             Vector<Vector<Integer>> CloneNeurons = EvolutionNeurons.get(clone);                   //and EvolutionNeurons automatically
 
@@ -416,8 +416,9 @@ public class Mechanic extends MainVariables {                                   
                                 System.out.println("Algorithm error: line 430");
                             }
                         }
+//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s - all clones mutated");
+//                        time = new Date().getTime();
 
-//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
                         //Test mutated clones
                         Vector<Double> Costs = new Vector<>();
                         double lowestCost = 999999;
@@ -506,20 +507,33 @@ public class Mechanic extends MainVariables {                                   
                             }
                         }
 
-//                        System.out.println("Generation " + generation + " complete");
-//                        System.out.println(": " + clone_number + " clones mutated");
-//                        System.out.println(addActions + " addActions\n" + changeActions + " changeActions\n" + disableActions + " disableActions\n" + neuronActions + " neuronActions\n" + functionActions + " functionActions\n" + removeActions + " removeActions");
-//                        System.out.println(": Testing images - " + trainingImagesNumber + "");
-//                        System.out.println(": Best clone - #" + (lowestCostCloneIndex+1) + " with Lowest cost - " + lowestCost);
-//                        System.out.println(": Worst clone - #" + (highestCostCloneIndex+1) + " with Highest cost - " + highestCost);
-//                        System.out.println(": Highest correct guess percentage - #" + (highestCorrectCloneIndex+1) + " with " + highestCorrect + "% correct");
-//                        System.out.println(": Lowest correct guess percentage - #" + (lowestCorrectCloneIndex+1) + " with " + lowestCorrect + "% correct");
-//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
-//                        System.out.println();
+                        System.out.println("Generation " + generation + " complete");
+                        System.out.println(": " + clone_number + " clones mutated");
+                        System.out.println(addActions + " addActions\n" + changeActions + " changeActions\n" + disableActions + " disableActions\n" + neuronActions + " neuronActions\n" + functionActions + " functionActions\n" + removeActions + " removeActions");
+                        System.out.println(": Testing images - " + trainingImagesNumber + "");
+                        System.out.println(": Best clone - #" + (lowestCostCloneIndex+1) + " with Lowest cost - " + lowestCost);
+                        System.out.println(": Worst clone - #" + (highestCostCloneIndex+1) + " with Highest cost - " + highestCost);
+                        System.out.println(": Highest correct guess percentage - #" + (highestCorrectCloneIndex+1) + " with " + highestCorrect + "% correct");
+                        System.out.println(": Lowest correct guess percentage - #" + (lowestCorrectCloneIndex+1) + " with " + lowestCorrect + "% correct");
+                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
+                        System.out.println();
 
                         //Save the best clone and pass its Neural Network to the next ones
                         Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses = EvolutionSynapses.get(lowestCostCloneIndex);
                         Vector<Vector<Integer>> BestCloneNeurons = EvolutionNeurons.get(lowestCostCloneIndex);
+
+                        if (generation % 10 == 0) {
+                            try {
+                                FileOutputStream fileOutputStream = new FileOutputStream(neuralNetworkSave);
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                                objectOutputStream.writeObject(BestCloneSynapses);
+                                objectOutputStream.writeObject(BestCloneNeurons);
+                                objectOutputStream.close();
+                                System.out.println(": Evolutionary Neural network ["+neuralNetworkSave+"] has been successfully saved");
+                            } catch (IOException e) {
+                                System.out.println("! An unexpected error occurred while trying to save the Evolutionary Neural network ["+neuralNetworkSave+"]");
+                            }
+                        }
 
                         EvolutionSynapses = new Vector<>();
                         EvolutionSynapses.setSize(clone_number);
@@ -557,9 +571,10 @@ public class Mechanic extends MainVariables {                                   
                         }
 
                         if (previousBestCost != 10) {
-                            System.out.println((previousBestCost-lowestCost)/((double) (new Date().getTime()-time)/1000) + " cost change / s");
+//                            System.out.println((previousBestCost-lowestCost)/((double) (new Date().getTime()-time)/1000) + " cost change / s");
                         }
                         previousBestCost = lowestCost;
+//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s - clones tested");
                     }
                     System.out.println("Done successfully");
                     break;
@@ -1053,7 +1068,7 @@ public class Mechanic extends MainVariables {                                   
             if (display)
                 System.out.println(": Neural network ["+save+"] has been successfully saved");
         } catch (IOException e) {
-            System.out.println("! An expected error occurred while trying to save the Neural network ["+save+"]");
+            System.out.println("! An unexpected error occurred while trying to save the Neural network ["+save+"]");
         }
     }
 
