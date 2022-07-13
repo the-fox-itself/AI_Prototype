@@ -28,12 +28,8 @@ public abstract class MainVariables {
     public static boolean modelGameLoopOn;
 
     public static Vector<Vector<Double>> Neurons = new Vector<>();
-    public static Vector<Vector<Integer>> NeuronFunctions = new Vector<>();
     public static Vector<Vector<Double>> Biases = new Vector<>();
     public static Vector<Vector<Vector<Double>>> Synapses = new Vector<>();
-    public static Vector<Vector<Vector<Vector<Double>>>> SynapsesE = new Vector<>();
-
-    public static boolean evolutionTraining;
 
     public static Vector<Vector<Double>> zs = new Vector<>();
 
@@ -43,6 +39,21 @@ public abstract class MainVariables {
 
     public static int[] layers = {784, 16, 16, 10};
 
+    public static int neuralNetworkAnswer = -1;
+    public static Vector<Double> perfectOutput = new Vector<>();
+    public static int rightAnswer;
+
+    public static Vector<Vector<Integer>> NeuronFunctions = new Vector<>();
+    public static Vector<Vector<Vector<Vector<Double>>>> SynapsesE = new Vector<>();
+
+    public static boolean evolutionTraining;
+    public static int generation_number;
+    public static int clone_number;
+    public static int trainingImagesNumber;
+
+    public static Vector<Vector<Vector<Integer>>> EvolutionNeurons = new Vector<>();
+    public static Vector<Vector<Vector<Vector<Vector<Double>>>>> EvolutionSynapses = new Vector<>();
+
     public static final int FUNCTION_SIG = 0;
     public static final int FUNCTION_LIN = 1;
     public static final int FUNCTION_SQR = 2;
@@ -51,10 +62,6 @@ public abstract class MainVariables {
     public static final int FUNCTION_REL = 5;
     public static final int FUNCTION_GAU = 6;
     public static final int FUNCTION_LAT = 7;
-
-    public static int neuralNetworkAnswer = -1;
-    public static Vector<Double> perfectOutput = new Vector<>();
-    public static int rightAnswer;
 
     public static Vector<Integer> imagesUsed = new Vector<>();
     public static Vector<Double> costsBefore = new Vector<>();
@@ -83,6 +90,7 @@ public abstract class MainVariables {
     final public static String FONT_USED = "Speak-Heavy";
 
     final public static File neuralNetworkSave = new File("resources"+SEPARATOR+"neural networks"+SEPARATOR+"neural_network.txt");
+    final public static File evolutionaryNeuralNetworkSave = new File("resources"+SEPARATOR+"neural networks"+SEPARATOR+"evolutionary_neural_network.txt");
 
     final public static File soundFile = new File("resources"+SEPARATOR+"sounds"+SEPARATOR+"Volume Alpha 08. Minecraft.mp3");
 

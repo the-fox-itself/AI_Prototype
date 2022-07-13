@@ -16,3 +16,17 @@ ReLU
 Initial accuracy: 12.08%
 
 1/butch; 6000 butches:      1 m 1 s         9.736%
+
+
+
+
+
+50 clones       25 images       0.0032916 cost/s
+100 clones      25 images       0.006437 cost/s
+200 clones      25 images       0.0009734 cost/s
+1000 clones     25 images       0.0004449 cost/s
+1000 clones     100 images      0.00010526 cost/s
+
+100 clones      50 images       0.006009 cost/s
+100 clones      100 images      0.001603 cost/s
+100 clones      1000 images     0.000086938 cost/s
