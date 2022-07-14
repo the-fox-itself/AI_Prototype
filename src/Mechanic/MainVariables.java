@@ -43,16 +43,21 @@ public abstract class MainVariables {
     public static Vector<Double> perfectOutput = new Vector<>();
     public static int rightAnswer;
 
+    public static int[] initial_layers = new int[]{784, 10};
+
     public static Vector<Vector<Integer>> NeuronFunctions = new Vector<>();
     public static Vector<Vector<Vector<Vector<Double>>>> SynapsesE = new Vector<>();
 
     public static boolean evolutionTraining;
-    public static int generation_number = 100000;
-    public static int clone_number = 4;
-    public static int trainingImagesNumber = 60000;
+    public static int generation_number;
+    public static int clone_number;
+    public static int trainingImagesNumber;
 
     public static Vector<Vector<Vector<Integer>>> EvolutionNeurons = new Vector<>();
     public static Vector<Vector<Vector<Vector<Vector<Double>>>>> EvolutionSynapses = new Vector<>();
+
+    public static Vector<Vector<Integer>> BestCloneNeurons;
+    public static Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses;
 
     public static final int FUNCTION_SIG = 0;
     public static final int FUNCTION_LIN = 1;

@@ -112,7 +112,7 @@ public class Mechanic extends MainVariables {                                   
                     randomInitialize();
 
                     zs.setSize(Neurons.size());
-                    for (int i = 0; i < zs.size(); i++) {
+                    for (int i = 1; i < zs.size(); i++) {
                         zs.set(i, new Vector<>());
                         zs.get(i).setSize(Neurons.get(i).size());
                     }
@@ -141,7 +141,7 @@ public class Mechanic extends MainVariables {                                   
                         }
 
                         zs.setSize(Neurons.size());
-                        for (int i = 0; i < zs.size(); i++) {
+                        for (int i = 1; i < zs.size(); i++) {
                             zs.set(i, new Vector<>());
                             zs.get(i).setSize(Neurons.get(i).size());
                         }
@@ -203,11 +203,20 @@ public class Mechanic extends MainVariables {                                   
                 case "train evolution":
                 case "train e":
                 case "train":
-                    long time = new Date().getTime();
-                    double initialCost = -1;
+                    long clock = new Date().getTime();
 
                     //Set up empty clone storage system
-                    layers = new int[]{784, 10};
+                    String answer = readLine("- Number of generations: ");
+                    if (!answer.equals("")) {
+                        generation_number = Integer.parseInt(answer);
+                        clone_number = Integer.parseInt(readLine("- Number of clones per generation: "));
+                        trainingImagesNumber = Integer.parseInt("- Number of testing images every generation: ");
+                    } else {
+                        generation_number = 10000;
+                        clone_number = 100;
+                        trainingImagesNumber = 50;
+                        System.out.println(": Default Evolutionary Neural Network setup was used");
+                    }
 
                     EvolutionNeurons = new Vector<>();
                     EvolutionNeurons.setSize(clone_number);
@@ -219,16 +228,16 @@ public class Mechanic extends MainVariables {                                   
                     EvolutionSynapses.setSize(clone_number);
                     for (int i = 0; i < EvolutionSynapses.size(); i++) {
                         EvolutionSynapses.set(i, new Vector<>());
-                        EvolutionSynapses.get(i).setSize(layers.length - 1);
+                        EvolutionSynapses.get(i).setSize(initial_layers.length - 1);
                         for (int i1 = 0; i1 < EvolutionSynapses.get(i).size(); i1++) {
                             EvolutionSynapses.get(i).set(i1, new Vector<>());
-                            EvolutionSynapses.get(i).get(i1).setSize(layers[i1]);
+                            EvolutionSynapses.get(i).get(i1).setSize(initial_layers[i1]);
                             for (int i2 = 0; i2 < EvolutionSynapses.get(i).get(i1).size(); i2++) {
                                 EvolutionSynapses.get(i).get(i1).set(i2, new Vector<>());
-                                EvolutionSynapses.get(i).get(i1).get(i2).setSize(layers.length);
+                                EvolutionSynapses.get(i).get(i1).get(i2).setSize(initial_layers.length);
                                 for (int i3 = i1+1; i3 < EvolutionSynapses.get(i).get(i1).get(i2).size(); i3++) {
                                     EvolutionSynapses.get(i).get(i1).get(i2).set(i3, new Vector<>());
-                                    EvolutionSynapses.get(i).get(i1).get(i2).get(i3).setSize(layers[i3]);
+                                    EvolutionSynapses.get(i).get(i1).get(i2).get(i3).setSize(initial_layers[i3]);
                                     for (int i4 = 0; i4 < EvolutionSynapses.get(i).get(i1).get(i2).get(i3).size(); i4++) {
                                         EvolutionSynapses.get(i).get(i1).get(i2).get(i3).set(i4, Double.NaN);
                                     }
@@ -238,10 +247,14 @@ public class Mechanic extends MainVariables {                                   
                     }
 
                     //An attempt to load a saved clone
-                    loadEvolutionaryNeuralNetwork();
+                    if (loadEvolutionaryNeuralNetwork()) {
+                        multiplyClones();
+                    }
 
                     for (int generation = 0; generation < generation_number; generation++) {
                         Vector<Integer[]> removedSynapses = new Vector<>();
+                        Vector<Integer[]> addedNeurons = new Vector<>();
+                        Vector<Integer[]> changedFunctions = new Vector<>();
                         Vector<Integer[]> removedNeurons = new Vector<>();
 
                         //Create mutated clones
@@ -251,228 +264,243 @@ public class Mechanic extends MainVariables {                                   
                         int neuronActions   = 0;
                         int functionActions = 0;
                         int removeActions   = 0;
+
+                        int mutation_number;
                         for (int clone = 1; clone < clone_number; clone++) {             //~ 600-1000 mutations / s
-                            Vector<Vector<Vector<Vector<Double>>>> CloneSynapses = EvolutionSynapses.get(clone);        //Translates values to EvolutionSynapses and EvolutionNeurons automatically
-                            Vector<Vector<Integer>> CloneNeurons = EvolutionNeurons.get(clone);
+                            if (clone == clone_number-1)
+                                mutation_number = 50;
+                            else if (clone > clone_number/7*6)
+                                mutation_number = 3;
+                            else if (clone > clone_number/7*4)
+                                mutation_number = 2;
+                            else
+                                mutation_number = 1;
+                            for (int mutation = 0; mutation < mutation_number; mutation++) {
+                                Vector<Vector<Vector<Vector<Double>>>> CloneSynapses = EvolutionSynapses.get(clone);        //Translates values to EvolutionSynapses and EvolutionNeurons automatically
+                                Vector<Vector<Integer>> CloneNeurons = EvolutionNeurons.get(clone);
 
-                            //Figuring out what kinds of mutations are possible
-                            ArrayList<int[]> missingSynapses  = new ArrayList<>();
-                            ArrayList<int[]> existingSynapses = new ArrayList<>();
-                            ArrayList<int[]> existingNeurons  = new ArrayList<>();
-                            int next = 0;
-                            int add      = -1;
-                            int change   = -1;
-                            int disable  = -1;
-                            int neuron   = -1;
-                            int function = -1;
-                            int remove   = -1;
-                            for (int j = 0; j < CloneSynapses.size(); j++) {
-                                for (int j1 = 0; j1 < CloneSynapses.get(j).size(); j1++) {
-                                    for (int j2 = j + 1; j2 < CloneSynapses.get(j).get(j1).size(); j2++) {
-                                        for (int j3 = 0; j3 < CloneSynapses.get(j).get(j1).get(j2).size(); j3++) {
-                                            double weight = CloneSynapses.get(j).get(j1).get(j2).get(j3);
-                                            if (Double.isNaN(weight)) {
-                                                if (add == -1) {
-                                                    add = next;
-                                                    next++;
+                                //Figuring out what kinds of mutations are possible
+                                ArrayList<int[]> missingSynapses = new ArrayList<>();
+                                ArrayList<int[]> existingSynapses = new ArrayList<>();
+                                ArrayList<int[]> existingNeurons = new ArrayList<>();
+                                int next = 0;
+                                int add = -1;
+                                int change = -1;
+                                int disable = -1;
+                                int neuron = -1;
+                                int function = -1;
+                                int remove = -1;
+                                for (int j = 0; j < CloneSynapses.size(); j++) {
+                                    for (int j1 = 0; j1 < CloneSynapses.get(j).size(); j1++) {
+                                        for (int j2 = j + 1; j2 < CloneSynapses.get(j).get(j1).size(); j2++) {
+                                            for (int j3 = 0; j3 < CloneSynapses.get(j).get(j1).get(j2).size(); j3++) {
+                                                double weight = CloneSynapses.get(j).get(j1).get(j2).get(j3);
+                                                if (Double.isNaN(weight)) {
+                                                    if (add == -1) {
+                                                        add = next;
+                                                        next++;
+                                                    }
+                                                    missingSynapses.add(new int[]{j, j1, j2, j3});
+                                                } else {
+                                                    if (change == -1) {
+                                                        change = next;
+                                                        next++;
+                                                    }
+                                                    if (disable == -1) {
+                                                        disable = next;
+                                                        next++;
+                                                    }
+                                                    if (neuron == -1) {
+                                                        neuron = next;
+                                                        next++;
+                                                    }
+                                                    existingSynapses.add(new int[]{j, j1, j2, j3});
                                                 }
-                                                missingSynapses.add(new int[]{j, j1, j2, j3});
-                                            } else {
-                                                if (change == -1) {
-                                                    change = next;
-                                                    next++;
-                                                }
-                                                if (disable == -1) {
-                                                    disable = next;
-                                                    next++;
-                                                }
-                                                if (neuron == -1) {
-                                                    neuron = next;
-                                                    next++;
-                                                }
-                                                existingSynapses.add(new int[]{j, j1, j2, j3});
                                             }
                                         }
                                     }
                                 }
-                            }
-                            for (int layer = 1; layer < CloneNeurons.size(); layer++) {
-                                for (int neuron1 = 0; neuron1 < CloneNeurons.get(layer).size(); neuron1++) {
-                                    if (function == -1) {
-                                        function = next;
-                                        next++;
+                                for (int layer = 1; layer < CloneNeurons.size(); layer++) {
+                                    for (int neuron1 = 0; neuron1 < CloneNeurons.get(layer).size(); neuron1++) {
+                                        if (function == -1) {
+                                            function = next;
+                                            next++;
+                                        }
+                                        if (remove == -1) {
+                                            remove = next;
+                                            next++;
+                                        }
+                                        existingNeurons.add(new int[]{layer, neuron1});
                                     }
-                                    if (remove == -1) {
-                                        remove = next;
-                                        next++;
-                                    }
-                                    existingNeurons.add(new int[]{layer, neuron1});
                                 }
-                            }
 
-                            //Applying a random mutation
-                            int action = (int) (Math.random() * next);
-                            if (action == add) {                //Add synapse                           (if there is a place to add one)    DONE
-                                int randomMissingSynapse = (int) (Math.random() * missingSynapses.size());
-                                double randomWeight = Math.random() * 2 - 1;
-                                int[] missingSynapse = missingSynapses.get(randomMissingSynapse);
-                                if (Double.isNaN(CloneSynapses.get(missingSynapse[0]).get(missingSynapse[1]).get(missingSynapse[2]).get(missingSynapse[3]))) {
-                                    CloneSynapses.get(missingSynapse[0]).get(missingSynapse[1]).get(missingSynapse[2]).set(missingSynapse[3], randomWeight);
+                                //Applying a random mutation
+                                int action = (int) (Math.random() * next);
+                                if (action == add) {                //Add synapse                           (if there is a place to add one)    DONE
+                                    int randomMissingSynapse = (int) (Math.random() * missingSynapses.size());
+                                    double randomWeight = Math.random() * 2 - 1;
+                                    int[] missingSynapse = missingSynapses.get(randomMissingSynapse);
+                                    if (Double.isNaN(CloneSynapses.get(missingSynapse[0]).get(missingSynapse[1]).get(missingSynapse[2]).get(missingSynapse[3]))) {
+                                        CloneSynapses.get(missingSynapse[0]).get(missingSynapse[1]).get(missingSynapse[2]).set(missingSynapse[3], randomWeight);
 //                                    System.out.println("Clone #"+clone+": New Synapse - "+missingSynapse[0]+":"+missingSynapse[1]+":"+missingSynapse[2]+":"+missingSynapse[3]+":"+randomWeight);
-                                    addActions++;
-                                } else
-                                    System.out.println("Algorithm error: line 335");
-                            } else if (action == change) {      //Change synapse's weight               (if there is a synapse) + should be privileged  DONE
-                                int randomSynapse = (int) (Math.random() * existingSynapses.size());
-                                double randomWeightChange = Math.random() * 1 - 0.5;
-                                int[] synapse = existingSynapses.get(randomSynapse);
-                                double weightValue = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
-                                if (!Double.isNaN(weightValue)) {
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], weightValue + randomWeightChange);
+                                        addActions++;
+                                    } else
+                                        System.out.println("! Algorithm error: line 335");
+                                } else if (action == change) {      //Change synapse's weight               (if there is a synapse) + should be privileged  DONE
+                                    int randomSynapse = (int) (Math.random() * existingSynapses.size());
+                                    double randomWeightChange = Math.random() * 1 - 0.5;
+                                    int[] synapse = existingSynapses.get(randomSynapse);
+                                    double weightValue = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
+                                    if (!Double.isNaN(weightValue)) {
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], weightValue + randomWeightChange);
 //                                    System.out.println("Clone #"+clone+": Change Synapse - "+synapse[0]+":"+synapse[1]+":"+synapse[2]+":"+synapse[3]+":"+weightValue+"+"+randomWeightChange);
-                                    changeActions++;
-                                } else
-                                    System.out.println("Algorithm error: line 346");
-                            } else if (action == disable) {     //Disable synapse                       (if there is a synapse)     DONE
-                                int randomSynapse = (int) (Math.random() * existingSynapses.size());
-                                int[] synapse = existingSynapses.get(randomSynapse);
-                                double weightValue = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
-                                if (!Double.isNaN(weightValue)) {
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], Double.NaN);
+                                        changeActions++;
+                                    } else
+                                        System.out.println("! Algorithm error: line 346");
+                                } else if (action == disable) {     //Disable synapse                       (if there is a synapse)     DONE
+                                    int randomSynapse = (int) (Math.random() * existingSynapses.size());
+                                    int[] synapse = existingSynapses.get(randomSynapse);
+                                    double weightValue = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
+                                    if (!Double.isNaN(weightValue)) {
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], Double.NaN);
 //                                    System.out.println("Clone #"+clone+": Disable Synapse - "+synapse[0]+":"+synapse[1]+":"+synapse[2]+":"+synapse[3]+" "+existingSynapses);
-                                    removedSynapses.add(new Integer[]{synapse[0], synapse[1], synapse[2], synapse[3]});
-                                    disableActions++;
-                                } else
-                                    System.out.println("Algorithm error: line 356");
-                            } else if (action == neuron) {      //Add a hidden neuron on a synapse      (if there is a synapse)     DONE
-                                int randomSynapse = (int) (Math.random() * existingSynapses.size());
-                                int[] synapse = existingSynapses.get(randomSynapse);
-                                int randomFunction = (int) (Math.random() * 6);
-                                double weight = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
-                                if (synapse[2] - synapse[0] > 1) {
-                                    int length = CloneNeurons.get(synapse[2] - 1).size();
-                                    CloneNeurons.get(synapse[2] - 1).add(randomFunction);
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], Double.NaN);
+                                        removedSynapses.add(new Integer[]{synapse[0], synapse[1], synapse[2], synapse[3]});
+                                        disableActions++;
+                                    } else
+                                        System.out.println("! Algorithm error: line 356");
+                                } else if (action == neuron) {      //Add a hidden neuron on a synapse      (if there is a synapse)     DONE
+                                    int randomSynapse = (int) (Math.random() * existingSynapses.size());
+                                    int[] synapse = existingSynapses.get(randomSynapse);
+                                    int randomFunction = (int) (Math.random() * 6);
+                                    double weight = CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).get(synapse[3]);
+                                    if (synapse[2] - synapse[0] > 1) {
+                                        int length = CloneNeurons.get(synapse[2] - 1).size();
+                                        CloneNeurons.get(synapse[2] - 1).add(randomFunction);
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(synapse[3], Double.NaN);
 
-                                    for (int startLayer = 0; startLayer < synapse[2]-1; startLayer++) {                     //Resizing the CloneSynapses array to create a new ending neuron
-                                        for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
-                                            CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2]-1).setSize(length+1);
-                                            CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2]-1).set(length, Double.NaN);
-                                        }
-                                    }
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2] - 1).set(length, weight);
-
-                                    CloneSynapses.get(synapse[2] - 1).setSize(length+1);                                    //Resizing the CloneSynapses array to create a new starting neuron
-                                    CloneSynapses.get(synapse[2] - 1).set(length, new Vector<>());
-                                    CloneSynapses.get(synapse[2] - 1).get(length).setSize(CloneSynapses.size()+1);
-                                    for (int endLayer = synapse[2]; endLayer < CloneSynapses.get(synapse[2] - 1).get(length).size(); endLayer++) {
-                                        CloneSynapses.get(synapse[2] - 1).get(length).set(endLayer, new Vector<>());
-                                        CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).setSize(CloneSynapses.get(0).get(0).get(endLayer).size());  //bug
-                                        for (int endNeuron = 0; endNeuron < CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).size(); endNeuron++) {
-                                            CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).set(endNeuron, Double.NaN);
-                                        }
-                                    }
-                                    CloneSynapses.get(synapse[2] - 1).get(length).get(synapse[2]).set(synapse[3], 1.0);
-
-                                    neuronActions++;
-                                } else if (synapse[2] - synapse[0] == 1) {
-                                    CloneNeurons.setSize(CloneNeurons.size()+1);                                            //Resizing the CloneNeurons array to create a new layer
-                                    CloneNeurons.set(CloneNeurons.size()-1, new Vector<>());
-                                    for (int layer = CloneNeurons.size()-1; layer > synapse[2]; layer--) {                //Hidden neuron movement
-                                        for (int hiddenNeuron = 0; hiddenNeuron < CloneNeurons.get(layer-1).size(); hiddenNeuron++) {
-                                            int value = CloneNeurons.get(layer-1).get(hiddenNeuron);
-                                            CloneNeurons.get(layer-1).remove(hiddenNeuron);
-                                            hiddenNeuron -= 1;
-                                            CloneNeurons.get(layer).add(value);
-                                        }
-                                    }
-                                    CloneNeurons.get(synapse[2]).add(randomFunction);
-
-                                    CloneSynapses.setSize(CloneSynapses.size()+1);
-                                    CloneSynapses.set(CloneSynapses.size()-1, new Vector<>());
-                                                                                                                            //Synapse movement
-                                    for (int startLayer = 0; startLayer < synapse[2]; startLayer++) {                       //Layers before the endLayer of the modified synapse
-                                        for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
-                                            CloneSynapses.get(startLayer).get(startNeuron).setSize(CloneSynapses.get(startLayer).get(startNeuron).size()+1);
-                                            CloneSynapses.get(startLayer).get(startNeuron).set(CloneSynapses.get(startLayer).get(startNeuron).size()-1, new Vector<>());
-
-                                            for (int endLayer = CloneSynapses.get(startLayer).get(startNeuron).size()-1; endLayer > synapse[2]; endLayer--) {
-                                                CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).setSize(CloneSynapses.get(startLayer).get(startNeuron).get(endLayer-1).size());
-                                                for (int endNeuron = 0; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(endLayer-1).size(); endNeuron++) {
-                                                    CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(startLayer).get(startNeuron).get(endLayer-1).get(endNeuron));
-                                                    CloneSynapses.get(startLayer).get(startNeuron).get(endLayer-1).set(endNeuron, Double.NaN);
-                                                }
-                                            }
-                                            CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2]).setSize(1);
-                                        }
-                                    }
-                                    for (int startLayer = CloneSynapses.size()-1; startLayer > synapse[2]; startLayer--) {
-                                        CloneSynapses.get(startLayer).setSize(CloneSynapses.get(startLayer-1).size());
-                                        for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer-1).size(); startNeuron++) {
-                                            CloneSynapses.get(startLayer).set(startNeuron, new Vector<>());
-                                            CloneSynapses.get(startLayer).get(startNeuron).setSize(CloneSynapses.size()+1);
-                                            for (int endLayer = CloneSynapses.get(startLayer).get(startNeuron).size()-1; endLayer > startLayer; endLayer--) {
-                                                CloneSynapses.get(startLayer).get(startNeuron).set(endLayer, new Vector<>());
-                                                CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).setSize(CloneSynapses.get(startLayer-1).get(startNeuron).get(endLayer-1).size());
-                                                for (int endNeuron = 0; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).size(); endNeuron++) {
-                                                    CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(startLayer-1).get(startNeuron).get(endLayer-1).get(endNeuron));
-                                                    CloneSynapses.get(startLayer-1).get(startNeuron).get(endLayer-1).set(endNeuron, Double.NaN);
-                                                }
+                                        for (int startLayer = 0; startLayer < synapse[2] - 1; startLayer++) {                     //Resizing the CloneSynapses array to create a new ending neuron
+                                            for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
+                                                CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2] - 1).setSize(length + 1);
+                                                CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2] - 1).set(length, Double.NaN);
                                             }
                                         }
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2] - 1).set(length, weight);
+
+                                        CloneSynapses.get(synapse[2] - 1).setSize(length + 1);                                    //Resizing the CloneSynapses array to create a new starting neuron
+                                        CloneSynapses.get(synapse[2] - 1).set(length, new Vector<>());
+                                        CloneSynapses.get(synapse[2] - 1).get(length).setSize(CloneSynapses.size() + 1);
+                                        for (int endLayer = synapse[2]; endLayer < CloneSynapses.get(synapse[2] - 1).get(length).size(); endLayer++) {
+                                            CloneSynapses.get(synapse[2] - 1).get(length).set(endLayer, new Vector<>());
+                                            CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).setSize(CloneSynapses.get(0).get(0).get(endLayer).size());  //bug
+                                            for (int endNeuron = 0; endNeuron < CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).size(); endNeuron++) {
+                                                CloneSynapses.get(synapse[2] - 1).get(length).get(endLayer).set(endNeuron, Double.NaN);
+                                            }
+                                        }
+                                        CloneSynapses.get(synapse[2] - 1).get(length).get(synapse[2]).set(synapse[3], 1.0);
+
+                                        neuronActions++;
+                                    } else if (synapse[2] - synapse[0] == 1) {
+                                        CloneNeurons.setSize(CloneNeurons.size() + 1);                                            //Resizing the CloneNeurons array to create a new layer
+                                        CloneNeurons.set(CloneNeurons.size() - 1, new Vector<>());
+                                        for (int layer = CloneNeurons.size() - 1; layer > synapse[2]; layer--) {                //Hidden neuron movement
+                                            for (int hiddenNeuron = 0; hiddenNeuron < CloneNeurons.get(layer - 1).size(); hiddenNeuron++) {
+                                                int value = CloneNeurons.get(layer - 1).get(hiddenNeuron);
+                                                CloneNeurons.get(layer - 1).remove(hiddenNeuron);
+                                                hiddenNeuron -= 1;
+                                                CloneNeurons.get(layer).add(value);
+                                            }
+                                        }
+                                        CloneNeurons.get(synapse[2]).add(randomFunction);
+
+                                        CloneSynapses.setSize(CloneSynapses.size() + 1);
+                                        CloneSynapses.set(CloneSynapses.size() - 1, new Vector<>());
+                                        //Synapse movement
+                                        for (int startLayer = 0; startLayer < synapse[2]; startLayer++) {                       //Layers before the endLayer of the modified synapse
+                                            for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
+                                                CloneSynapses.get(startLayer).get(startNeuron).setSize(CloneSynapses.get(startLayer).get(startNeuron).size() + 1);
+                                                CloneSynapses.get(startLayer).get(startNeuron).set(CloneSynapses.get(startLayer).get(startNeuron).size() - 1, new Vector<>());
+
+                                                for (int endLayer = CloneSynapses.get(startLayer).get(startNeuron).size() - 1; endLayer > synapse[2]; endLayer--) {
+                                                    CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).setSize(CloneSynapses.get(startLayer).get(startNeuron).get(endLayer - 1).size());
+                                                    for (int endNeuron = 0; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(endLayer - 1).size(); endNeuron++) {
+                                                        CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(startLayer).get(startNeuron).get(endLayer - 1).get(endNeuron));
+                                                        CloneSynapses.get(startLayer).get(startNeuron).get(endLayer - 1).set(endNeuron, Double.NaN);
+                                                    }
+                                                }
+                                                CloneSynapses.get(startLayer).get(startNeuron).get(synapse[2]).setSize(1);
+                                            }
+                                        }
+                                        for (int startLayer = CloneSynapses.size() - 1; startLayer > synapse[2]; startLayer--) {
+                                            CloneSynapses.get(startLayer).setSize(CloneSynapses.get(startLayer - 1).size());
+                                            for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer - 1).size(); startNeuron++) {
+                                                CloneSynapses.get(startLayer).set(startNeuron, new Vector<>());
+                                                CloneSynapses.get(startLayer).get(startNeuron).setSize(CloneSynapses.size() + 1);
+                                                for (int endLayer = CloneSynapses.get(startLayer).get(startNeuron).size() - 1; endLayer > startLayer; endLayer--) {
+                                                    CloneSynapses.get(startLayer).get(startNeuron).set(endLayer, new Vector<>());
+                                                    CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).setSize(CloneSynapses.get(startLayer - 1).get(startNeuron).get(endLayer - 1).size());
+                                                    for (int endNeuron = 0; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).size(); endNeuron++) {
+                                                        CloneSynapses.get(startLayer).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(startLayer - 1).get(startNeuron).get(endLayer - 1).get(endNeuron));
+                                                        CloneSynapses.get(startLayer - 1).get(startNeuron).get(endLayer - 1).set(endNeuron, Double.NaN);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        CloneSynapses.get(synapse[2]).setSize(1);
+                                        CloneSynapses.get(synapse[2]).set(0, new Vector<>());
+                                        CloneSynapses.get(synapse[2]).get(0).setSize(CloneSynapses.size() + 1);
+                                        for (int endLayer = synapse[2] + 1; endLayer < CloneSynapses.get(synapse[2]).get(0).size(); endLayer++) {
+                                            CloneSynapses.get(synapse[2]).get(0).set(endLayer, new Vector<>());
+                                            CloneSynapses.get(synapse[2]).get(0).get(endLayer).setSize(CloneSynapses.get(synapse[2] - 1).get(0).get(endLayer).size());
+                                            for (int endNeuron = 0; endNeuron < CloneSynapses.get(synapse[2]).get(0).get(endLayer).size(); endNeuron++) {
+                                                CloneSynapses.get(synapse[2]).get(0).get(endLayer).set(endNeuron, Double.NaN);
+                                            }
+                                        }
+
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2] + 1).set(synapse[3], Double.NaN);
+                                        CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(0, weight);
+                                        CloneSynapses.get(synapse[2]).get(0).get(synapse[2] + 1).set(synapse[3], 1.0);
+                                        neuronActions++;
+                                    } else {
+                                        System.out.println("! Algorithm error: line 402");
                                     }
-                                    CloneSynapses.get(synapse[2]).setSize(1);
-                                    CloneSynapses.get(synapse[2]).set(0, new Vector<>());
-                                    CloneSynapses.get(synapse[2]).get(0).setSize(CloneSynapses.size()+1);
-                                    for (int endLayer = synapse[2]+1; endLayer < CloneSynapses.get(synapse[2]).get(0).size(); endLayer++) {
-                                        CloneSynapses.get(synapse[2]).get(0).set(endLayer, new Vector<>());
-                                        CloneSynapses.get(synapse[2]).get(0).get(endLayer).setSize(CloneSynapses.get(synapse[2]-1).get(0).get(endLayer).size());
-                                        for (int endNeuron = 0; endNeuron < CloneSynapses.get(synapse[2]).get(0).get(endLayer).size(); endNeuron++) {
-                                            CloneSynapses.get(synapse[2]).get(0).get(endLayer).set(endNeuron, Double.NaN);
+                                } else if (action == function) {    //Change neuron's activation function   (if there is a neuron)  DONE
+                                    int randomNeuron = (int) (Math.random() * existingNeurons.size());
+                                    int[] hiddenNeuron = existingNeurons.get(randomNeuron);
+                                    int functionIndex = CloneNeurons.get(hiddenNeuron[0]).get(hiddenNeuron[1]);
+                                    int randomFunction = (int) (Math.random() * 5);
+                                    if (randomFunction >= functionIndex)
+                                        randomFunction++;
+                                    CloneNeurons.get(hiddenNeuron[0]).set(hiddenNeuron[1], randomFunction);
+                                    functionActions++;
+                                } else if (action == remove) {      //Remove a hidden neuron                (if there is a neuron)  DONE
+                                    int randomNeuron = (int) (Math.random() * existingNeurons.size());
+                                    int[] hiddenNeuron = existingNeurons.get(randomNeuron);
+                                    for (int startLayer = 0; startLayer < hiddenNeuron[0]; startLayer++) {
+                                        for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
+                                            for (int endNeuron = hiddenNeuron[1]; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).size() - 1; endNeuron++) {
+                                                CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).set(endNeuron, CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).get(endNeuron + 1));
+                                            }
+                                            CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).setSize(CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).size() - 1);
                                         }
                                     }
-
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2] + 1).set(synapse[3], Double.NaN);
-                                    CloneSynapses.get(synapse[0]).get(synapse[1]).get(synapse[2]).set(0, weight);
-                                    CloneSynapses.get(synapse[2]).get(0).get(synapse[2] + 1).set(synapse[3], 1.0);
-                                    neuronActions++;
+                                    for (int startNeuron = hiddenNeuron[1]; startNeuron < CloneSynapses.get(hiddenNeuron[0]).size() - 1; startNeuron++) {
+                                        for (int endLayer = hiddenNeuron[0] + 1; endLayer < CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).size(); endLayer++) {
+                                            Vector<Vector<Vector<Double>>> vector = CloneSynapses.get(hiddenNeuron[0]);
+                                            Vector<Vector<Double>> vector1 = vector.get(startNeuron);
+                                            Vector<Double> vector2 = vector1.get(endLayer);
+                                            int s = vector2.size();
+                                            for (int endNeuron = 0; endNeuron < CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).get(endLayer).size(); endNeuron++) {
+                                                CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(hiddenNeuron[0]).get(startNeuron + 1).get(endLayer).get(endNeuron));
+                                            }
+                                        }
+                                    }
+                                    CloneSynapses.get(hiddenNeuron[0]).setSize(CloneSynapses.get(hiddenNeuron[0]).size() - 1);
+                                    CloneNeurons.get(hiddenNeuron[0]).remove(hiddenNeuron[1]);
+                                    removedNeurons.add(new Integer[]{hiddenNeuron[0], hiddenNeuron[1]});
+                                    removeActions++;
                                 } else {
-                                    System.out.println("Algorithm error: line 402");
+                                    System.out.println("! Algorithm error: line 430");
                                 }
-
-                            } else if (action == function) {    //Change neuron's activation function   (if there is a neuron)  DONE
-                                int randomNeuron = (int) (Math.random() * existingNeurons.size());
-                                int[] hiddenNeuron = existingNeurons.get(randomNeuron);
-                                int functionIndex = CloneNeurons.get(hiddenNeuron[0]).get(hiddenNeuron[1]);
-                                int randomFunction = (int) (Math.random() * 5);
-                                if (randomFunction >= functionIndex)
-                                    randomFunction++;
-                                CloneNeurons.get(hiddenNeuron[0]).set(hiddenNeuron[1], randomFunction);
-                                functionActions++;
-                            } else if (action == remove) {      //Remove a hidden neuron                (if there is a neuron)  DONE
-                                int randomNeuron = (int) (Math.random() * existingNeurons.size());
-                                int[] hiddenNeuron = existingNeurons.get(randomNeuron);
-                                for (int startLayer = 0; startLayer < hiddenNeuron[0]; startLayer++) {
-                                    for (int startNeuron = 0; startNeuron < CloneSynapses.get(startLayer).size(); startNeuron++) {
-                                        for (int endNeuron = hiddenNeuron[1]; endNeuron < CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).size()-1; endNeuron++) {
-                                            CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).set(endNeuron, CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).get(endNeuron+1));
-                                        }
-                                        CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).setSize(CloneSynapses.get(startLayer).get(startNeuron).get(hiddenNeuron[0]).size()-1);
-                                    }
-                                }
-                                for (int startNeuron = hiddenNeuron[1]; startNeuron < CloneSynapses.get(hiddenNeuron[0]).size()-1; startNeuron++) {
-                                    for (int endLayer = hiddenNeuron[0]+1; endLayer < CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).size(); endLayer++) {
-                                        for (int endNeuron = 0; endNeuron < CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).get(endLayer).size(); endNeuron++) {
-                                            CloneSynapses.get(hiddenNeuron[0]).get(startNeuron).get(endLayer).set(endNeuron, CloneSynapses.get(hiddenNeuron[0]).get(startNeuron+1).get(endLayer).get(endNeuron));
-                                        }
-                                    }
-                                }
-                                CloneSynapses.get(hiddenNeuron[0]).setSize(CloneSynapses.get(hiddenNeuron[0]).size()-1);
-                                CloneNeurons.get(hiddenNeuron[0]).remove(hiddenNeuron[1]);
-                                removedNeurons.add(new Integer[]{hiddenNeuron[0], hiddenNeuron[1]});
-                                removeActions++;
-                            } else {
-                                System.out.println("Algorithm error: line 430");
                             }
                         }
 
@@ -487,55 +515,59 @@ public class Mechanic extends MainVariables {                                   
 
                         double highestCorrect = 0;
                         int highestCorrectCloneIndex = 0;
-                        double lowestCorrect = 100;
+                        double lowestCorrect = trainingImagesNumber;
                         int lowestCorrectCloneIndex = 0;
 
                         for (int clone = 0; clone < clone_number; clone++) {
                             costSum = 0;
                             correct = 0;
                             Neurons = new Vector<>();
-                            Neurons.setSize(EvolutionSynapses.get(clone).size()+1);
+                            Neurons.setSize(EvolutionNeurons.get(clone).size()+1);
                             Neurons.replaceAll(ignored -> new Vector<>());
-                            Neurons.get(0).setSize(784);
-                            Neurons.lastElement().setSize(10);
-                            for (int i = 1; i < Neurons.size()-1; i++) {
-                                Neurons.get(i).setSize(EvolutionSynapses.get(clone).get(i).size());
+                            Neurons.get(0).setSize(initial_layers[0]);
+                            Neurons.lastElement().setSize(initial_layers[initial_layers.length-1]);
+                            for (int layer = 1; layer < Neurons.size()-1; layer++) {
+                                Neurons.get(layer).setSize(EvolutionNeurons.get(clone).get(layer).size());
                             }
 
                             NeuronFunctions = new Vector<>();
                             NeuronFunctions.setSize(EvolutionNeurons.get(clone).size()+1);
-                            NeuronFunctions.replaceAll(ignored -> new Vector<>());
-                            NeuronFunctions.lastElement().setSize(10);
-                            for (int i = 1; i < NeuronFunctions.size()-1; i++) {
-                                NeuronFunctions.get(i).setSize(EvolutionSynapses.get(clone).get(i).size());
+                            NeuronFunctions.set(NeuronFunctions.size()-1, new Vector<>());
+                            NeuronFunctions.lastElement().setSize(initial_layers[initial_layers.length-1]);
+                            for (int neuron = 0; neuron < NeuronFunctions.lastElement().size(); neuron++) {
+                                NeuronFunctions.lastElement().set(neuron, FUNCTION_SIG);
                             }
                             for (int layer = 1; layer < NeuronFunctions.size()-1; layer++) {
+                                NeuronFunctions.set(layer, new Vector<>());
+                                NeuronFunctions.get(layer).setSize(EvolutionNeurons.get(clone).get(layer).size());
                                 for (int neuron = 0; neuron < NeuronFunctions.get(layer).size(); neuron++) {
                                     NeuronFunctions.get(layer).set(neuron, EvolutionNeurons.get(clone).get(layer).get(neuron));
                                 }
-                            }
-                            for (int neuron = 0; neuron < NeuronFunctions.lastElement().size(); neuron++) {
-                                NeuronFunctions.lastElement().set(neuron, FUNCTION_SIG);
                             }
 
                             SynapsesE = EvolutionSynapses.get(clone);
 
                             zs.setSize(Neurons.size());
-                            for (int i = 0; i < zs.size(); i++) {
-                                zs.set(i, new Vector<>());
-                                zs.get(i).setSize(Neurons.get(i).size());
+                            for (int layer = 1; layer < zs.size(); layer++) {
+                                zs.set(layer, new Vector<>());
+                                zs.get(layer).setSize(Neurons.get(layer).size());
                             }
-                            perfectOutput.setSize(Neurons.lastElement().size());
+                            perfectOutput.setSize(initial_layers[initial_layers.length-1]);
                             evolutionTraining = true;
 
                             Vector<Integer> trainingImages = new Vector<>();
-                            for (int j = 0; j < trainingImagesNumber; j++) {
-                                int image = (int) (Math.random() * 60000);
-                                trainingImages.add(image);
+                            for (int index = 0; index < trainingImagesNumber; index++) {
+                                while (true) {
+                                    int image = (int) (Math.random() * 60000);
+                                    if (!trainingImages.contains(image)) {
+                                        trainingImages.add(image);
+                                        break;
+                                    }
+                                }
                             }
 
-                            for (int image = 0; image < trainingImagesNumber; image++) {
-                                imageNumber = trainingImages.get(image);
+                            for (int index = 0; index < trainingImagesNumber; index++) {
+                                imageNumber = trainingImages.get(index);
                                 readImage(imageNumber);
                                 readAnswer(imageNumber);
                                 neuralNetwork();
@@ -564,20 +596,19 @@ public class Mechanic extends MainVariables {                                   
                             }
                         }
 
-                        System.out.println("Generation " + generation + " complete");           //2 clones      60000 images     137.373 s
-                        System.out.println(": " + clone_number + " clones mutated");            //4 clones      60000 images     268.585 s
+                        System.out.println("Generation " + generation + " complete");
+                        System.out.println(": " + clone_number + " clones mutated");
                         System.out.println(addActions + " addActions\n" + changeActions + " changeActions\n" + disableActions + " disableActions\n" + neuronActions + " neuronActions\n" + functionActions + " functionActions\n" + removeActions + " removeActions");
                         System.out.println(": Testing images - " + trainingImagesNumber + "");
                         System.out.println(": Best clone - #" + (lowestCostCloneIndex+1) + " with Lowest cost - " + lowestCost);
                         System.out.println(": Worst clone - #" + (highestCostCloneIndex+1) + " with Highest cost - " + highestCost);
-                        System.out.println(": Highest correct guess percentage - #" + (highestCorrectCloneIndex+1) + " with " + highestCorrect + "% correct");
-                        System.out.println(": Lowest correct guess percentage - #" + (lowestCorrectCloneIndex+1) + " with " + lowestCorrect + "% correct");
-
-                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
+                        System.out.println(": Highest correct guess % - #" + (highestCorrectCloneIndex+1) + " with " + highestCorrect + "% correct");
+                        System.out.println(": Lowest correct guess % - #" + (lowestCorrectCloneIndex+1) + " with " + lowestCorrect + "% correct");
 
                         //Choose the best clone and pass its Neural Network to the next ones
-                        Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses = EvolutionSynapses.get(lowestCostCloneIndex);
-                        Vector<Vector<Integer>> BestCloneNeurons = EvolutionNeurons.get(lowestCostCloneIndex);
+                        BestCloneNeurons = EvolutionNeurons.get(lowestCostCloneIndex);
+                        BestCloneSynapses = EvolutionSynapses.get(lowestCostCloneIndex);
+                        multiplyClones();
 
                         int neurons = 0;
                         for (int layer = 1; layer < BestCloneNeurons.size(); layer++) {
@@ -586,21 +617,13 @@ public class Mechanic extends MainVariables {                                   
                         System.out.println("Number of neurons in the leading clone: " + neurons);
                         System.out.println();
 
-                        //Saving the best clone as a file every 10 generations
-                        if (generation % 10 == 0) {
-                            saveEvolutionaryNeuralNetwork(BestCloneSynapses, BestCloneNeurons);
+                        //Saving the best clone as a file every 30 seconds
+                        if ((double)(new Date().getTime()-clock)/1000 > 30) {
+                            saveEvolutionaryNeuralNetwork();
+                            clock = new Date().getTime();
                         }
-
-                        multiplyClones(BestCloneSynapses, BestCloneNeurons);
-
-                        if (initialCost == -1)
-                            initialCost = lowestCost;
-                        else
-                            System.out.println((initialCost-lowestCost)/((double) (new Date().getTime()-time)/1000) + " average cost improvement / s");
-
-//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s - clones tested");
                     }
-                    System.out.println("Done successfully");
+                    System.out.println(": Evolutionary Neural Network training done successfully");
                     break;
                 case "test":
                     if (neuralNetworkSetUp) {
@@ -609,44 +632,42 @@ public class Mechanic extends MainVariables {                                   
                     } else
                         System.out.println("! There is no created or loaded Neural network to test");
                     break;
-                case "test e":      //14.91%        --> 20 generations -->      14.953%
+                case "test e":      //14.91%        --> 20 generations -->      14.953%         14.1616%
                     loadEvolutionaryNeuralNetwork();
 
                     int correct = 0;
                     Neurons = new Vector<>();
-                    Neurons.setSize(EvolutionSynapses.get(0).size()+1);
+                    Neurons.setSize(BestCloneNeurons.size()+1);
                     Neurons.replaceAll(ignored -> new Vector<>());
-                    Neurons.get(0).setSize(784);
-                    Neurons.lastElement().setSize(10);
-                    for (int i = 1; i < Neurons.size()-1; i++) {
-                        Neurons.get(i).setSize(EvolutionSynapses.get(0).get(i).size());
+                    Neurons.get(0).setSize(initial_layers[0]);
+                    Neurons.lastElement().setSize(initial_layers[initial_layers.length-1]);
+                    for (int layer = 1; layer < Neurons.size()-1; layer++) {
+                        Neurons.get(layer).setSize(BestCloneNeurons.get(layer).size());
                     }
 
                     NeuronFunctions = new Vector<>();
-                    NeuronFunctions.setSize(EvolutionNeurons.get(0).size()+1);
-                    NeuronFunctions.replaceAll(ignored -> new Vector<>());
-                    NeuronFunctions.lastElement().setSize(10);
-                    for (int i = 1; i < NeuronFunctions.size()-1; i++) {
-                        NeuronFunctions.get(i).setSize(EvolutionSynapses.get(0).get(i).size());
-                    }
-                    for (int layer = 1; layer < NeuronFunctions.size()-1; layer++) {
-                        for (int neuron = 0; neuron < NeuronFunctions.get(layer).size(); neuron++) {
-                            NeuronFunctions.get(layer).set(neuron, EvolutionNeurons.get(0).get(layer).get(neuron));
-                        }
-                    }
+                    NeuronFunctions.setSize(BestCloneNeurons.size()+1);
+                    NeuronFunctions.set(NeuronFunctions.size()-1, new Vector<>());
+                    NeuronFunctions.lastElement().setSize(initial_layers[initial_layers.length-1]);
                     for (int neuron = 0; neuron < NeuronFunctions.lastElement().size(); neuron++) {
                         NeuronFunctions.lastElement().set(neuron, FUNCTION_SIG);
                     }
+                    for (int layer = 1; layer < NeuronFunctions.size()-1; layer++) {
+                        NeuronFunctions.set(layer, new Vector<>());
+                        NeuronFunctions.get(layer).setSize(BestCloneNeurons.get(layer).size());
+                        for (int neuron = 0; neuron < NeuronFunctions.get(layer).size(); neuron++) {
+                            NeuronFunctions.get(layer).set(neuron, BestCloneNeurons.get(layer).get(neuron));
+                        }
+                    }
 
-                    SynapsesE = EvolutionSynapses.get(0);
+                    SynapsesE = BestCloneSynapses;
 
                     zs.setSize(Neurons.size());
-                    for (int i = 0; i < zs.size(); i++) {
-                        zs.set(i, new Vector<>());
-                        zs.get(i).setSize(Neurons.get(i).size());
+                    for (int layer = 1; layer < zs.size(); layer++) {
+                        zs.set(layer, new Vector<>());
+                        zs.get(layer).setSize(Neurons.get(layer).size());
                     }
-                    perfectOutput.setSize(Neurons.lastElement().size());
-
+                    perfectOutput.setSize(initial_layers[initial_layers.length-1]);
                     evolutionTraining = true;
 
                     for (int image = 0; image < 60000; image++) {
@@ -728,7 +749,7 @@ public class Mechanic extends MainVariables {                                   
                     randomInitialize();
 
                     zs.setSize(Neurons.size());
-                    for (int i = 0; i < zs.size(); i++) {
+                    for (int i = 1; i < zs.size(); i++) {
                         zs.set(i, new Vector<>());
                         zs.get(i).setSize(Neurons.get(i).size());
                     }
@@ -749,35 +770,40 @@ public class Mechanic extends MainVariables {                                   
         }
     }
 
-    static void saveEvolutionaryNeuralNetwork(Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses, Vector<Vector<Integer>> BestCloneNeurons) {
+    static boolean saveEvolutionaryNeuralNetwork() {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(evolutionaryNeuralNetworkSave);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(BestCloneSynapses);
             objectOutputStream.writeObject(BestCloneNeurons);
+            objectOutputStream.writeObject(BestCloneSynapses);
             objectOutputStream.close();
             System.out.println(": Evolutionary Neural network ["+evolutionaryNeuralNetworkSave+"] has been successfully saved");
+            return true;
         } catch (IOException e) {
             System.out.println("! An unexpected error occurred while trying to save the Evolutionary Neural network ["+evolutionaryNeuralNetworkSave+"]");
+            return false;
         }
     }
-    static void loadEvolutionaryNeuralNetwork() {
+    static boolean loadEvolutionaryNeuralNetwork() {
         try {
             FileInputStream fileInputStream = new FileInputStream(evolutionaryNeuralNetworkSave);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses = (Vector<Vector<Vector<Vector<Double>>>>) objectInputStream.readObject();
-            Vector<Vector<Integer>> BestCloneNeurons = (Vector<Vector<Integer>>) objectInputStream.readObject();
-            multiplyClones(BestCloneSynapses, BestCloneNeurons);
+            BestCloneNeurons = (Vector<Vector<Integer>>) objectInputStream.readObject();
+            BestCloneSynapses = (Vector<Vector<Vector<Vector<Double>>>>) objectInputStream.readObject();
             System.out.println(": Evolutionary Neural network ["+evolutionaryNeuralNetworkSave+"] has been successfully loaded");
+            return true;
         } catch (FileNotFoundException e) {
             System.out.println("! Evolutionary Neural network file ["+evolutionaryNeuralNetworkSave+"] has not been found");
+            return false;
         } catch (IOException e) {
             System.out.println("! An unexpected error has occurred while trying to load Evolutionary Neural network file ["+evolutionaryNeuralNetworkSave+"]");
+            return false;
         } catch (ClassNotFoundException e) {
             System.out.println("! Evolutionary Neural network file ["+evolutionaryNeuralNetworkSave+"] is corrupted and cannot be read");
+            return false;
         }
     }
-    static void multiplyClones(Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses, Vector<Vector<Integer>> BestCloneNeurons) {
+    static void multiplyClones() {
         EvolutionSynapses = new Vector<>();
         EvolutionSynapses.setSize(clone_number);
         EvolutionNeurons = new Vector<>();

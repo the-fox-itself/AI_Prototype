@@ -30,3 +30,21 @@ Initial accuracy: 12.08%
 100 clones      50 images       0.006009 cost/s
 100 clones      100 images      0.001603 cost/s
 100 clones      1000 images     0.000086938 cost/s
+
+
+
+2 clones      60000 images     137.373 s
+4 clones      60000 images     268.585 s
+
+
+
+
+Optimization: Find the most time consuming parts and find a way to optimize them
+Find a way to calculate the best clone_number and trainingImagesNumber values for the fastest NN learning
+Efficiency: Make the NN more efficient by changing the algorithm
+Make possible several mutations at once
+
+Prevent same 1-mutation clones, especially for removing synapses and neurons
+Create all possible 1 mutation clones with removed synapses and neurons beforehand
+Calculate the number of clones depending on all possible 1-mutations
+Every generation make one completely random clone to be able to start from a random point on the cost function graph and to avoid the limit of mutations a clone can have
