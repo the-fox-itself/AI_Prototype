@@ -208,9 +208,6 @@ public class Mechanic extends MainVariables {                                   
 
                     //Set up empty clone storage system
                     layers = new int[]{784, 10};
-                    generation_number = 1000;
-                    clone_number = 100;
-                    trainingImagesNumber = 50;
 
                     EvolutionNeurons = new Vector<>();
                     EvolutionNeurons.setSize(clone_number);
@@ -567,8 +564,8 @@ public class Mechanic extends MainVariables {                                   
                             }
                         }
 
-                        System.out.println("Generation " + generation + " complete");
-                        System.out.println(": " + clone_number + " clones mutated");
+                        System.out.println("Generation " + generation + " complete");           //2 clones      60000 images     137.373 s
+                        System.out.println(": " + clone_number + " clones mutated");            //4 clones      60000 images     268.585 s
                         System.out.println(addActions + " addActions\n" + changeActions + " changeActions\n" + disableActions + " disableActions\n" + neuronActions + " neuronActions\n" + functionActions + " functionActions\n" + removeActions + " removeActions");
                         System.out.println(": Testing images - " + trainingImagesNumber + "");
                         System.out.println(": Best clone - #" + (lowestCostCloneIndex+1) + " with Lowest cost - " + lowestCost);
@@ -576,7 +573,7 @@ public class Mechanic extends MainVariables {                                   
                         System.out.println(": Highest correct guess percentage - #" + (highestCorrectCloneIndex+1) + " with " + highestCorrect + "% correct");
                         System.out.println(": Lowest correct guess percentage - #" + (lowestCorrectCloneIndex+1) + " with " + lowestCorrect + "% correct");
 
-//                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
+                        System.out.println((double) (new Date().getTime()-time)/1000 + " s");
 
                         //Choose the best clone and pass its Neural Network to the next ones
                         Vector<Vector<Vector<Vector<Double>>>> BestCloneSynapses = EvolutionSynapses.get(lowestCostCloneIndex);
@@ -611,6 +608,57 @@ public class Mechanic extends MainVariables {                                   
                         testNeuralNetwork();
                     } else
                         System.out.println("! There is no created or loaded Neural network to test");
+                    break;
+                case "test e":      //14.91%        --> 20 generations -->      14.953%
+                    loadEvolutionaryNeuralNetwork();
+
+                    int correct = 0;
+                    Neurons = new Vector<>();
+                    Neurons.setSize(EvolutionSynapses.get(0).size()+1);
+                    Neurons.replaceAll(ignored -> new Vector<>());
+                    Neurons.get(0).setSize(784);
+                    Neurons.lastElement().setSize(10);
+                    for (int i = 1; i < Neurons.size()-1; i++) {
+                        Neurons.get(i).setSize(EvolutionSynapses.get(0).get(i).size());
+                    }
+
+                    NeuronFunctions = new Vector<>();
+                    NeuronFunctions.setSize(EvolutionNeurons.get(0).size()+1);
+                    NeuronFunctions.replaceAll(ignored -> new Vector<>());
+                    NeuronFunctions.lastElement().setSize(10);
+                    for (int i = 1; i < NeuronFunctions.size()-1; i++) {
+                        NeuronFunctions.get(i).setSize(EvolutionSynapses.get(0).get(i).size());
+                    }
+                    for (int layer = 1; layer < NeuronFunctions.size()-1; layer++) {
+                        for (int neuron = 0; neuron < NeuronFunctions.get(layer).size(); neuron++) {
+                            NeuronFunctions.get(layer).set(neuron, EvolutionNeurons.get(0).get(layer).get(neuron));
+                        }
+                    }
+                    for (int neuron = 0; neuron < NeuronFunctions.lastElement().size(); neuron++) {
+                        NeuronFunctions.lastElement().set(neuron, FUNCTION_SIG);
+                    }
+
+                    SynapsesE = EvolutionSynapses.get(0);
+
+                    zs.setSize(Neurons.size());
+                    for (int i = 0; i < zs.size(); i++) {
+                        zs.set(i, new Vector<>());
+                        zs.get(i).setSize(Neurons.get(i).size());
+                    }
+                    perfectOutput.setSize(Neurons.lastElement().size());
+
+                    evolutionTraining = true;
+
+                    for (int image = 0; image < 60000; image++) {
+                        readImage(image);
+                        readAnswer(image);
+                        neuralNetwork();
+                        if (neuralNetworkAnswer == rightAnswer) {
+                            correct++;
+                        }
+                    }
+
+                    System.out.println("Test result: " + ((double)(correct)/60000*100) + "%");
                     break;
                 case "visualization":
                 case "visualisation":
