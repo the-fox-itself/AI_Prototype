@@ -212,7 +212,7 @@ public class Mechanic extends MainVariables {                                   
                         clone_number = Integer.parseInt(readLine("- Number of clones per generation: "));
                         trainingImagesNumber = Integer.parseInt("- Number of testing images every generation: ");
                     } else {
-                        generation_number = 10000;
+                        generation_number = 1000000;
                         clone_number = 100;
                         trainingImagesNumber = 50;
                         System.out.println(": Default Evolutionary Neural Network setup was used");
@@ -633,7 +633,7 @@ public class Mechanic extends MainVariables {                                   
                         System.out.println("! There is no created or loaded Neural network to test");
                     break;
                 case "test e":      //14.91%        --> 20 generations -->      14.953%         14.1616%
-                    loadEvolutionaryNeuralNetwork();
+                    loadEvolutionaryNeuralNetwork();        //600 generations  15.383%      -->     2843 generations    101 neurons     1.4546      11.208%
 
                     int correct = 0;
                     Neurons = new Vector<>();
