@@ -1,0 +1,170 @@
+SIG
+Initial accuracy: 12.67333%
+
+1/butch; 6000 butches:      1 m 6 s         9.748%
+1/butch; 60000 butches:     12 m 22 s       9.035%
+2/butch; 6000 butches:      1 m 54 s        15.058%
+2/butch; 60000 butches:     19 m 50 s       10.441%
+100/butch; 1000 butches:    13 m 36 s       10.736%
+
+
+* Visualize backpropagation and change in weights and biases
+
+
+
+ReLU
+Initial accuracy: 12.08%
+
+1/butch; 6000 butches:      1 m 1 s         9.736%
+
+
+
+
+
+50 clones       25 images       0.0032916 cost/s
+100 clones      25 images       0.006437 cost/s
+200 clones      25 images       0.0009734 cost/s
+1000 clones     25 images       0.0004449 cost/s
+1000 clones     100 images      0.00010526 cost/s
+
+100 clones      50 images       0.006009 cost/s
+100 clones      100 images      0.001603 cost/s
+100 clones      1000 images     0.000086938 cost/s
+
+
+
+2 clones      60000 images     137.373 s
+4 clones      60000 images     268.585 s
+
+
+
+
+Optimization: Find the most time consuming parts and find a way to optimize them
+Find a way to calculate the best clone_number and trainingImagesNumber values for the fastest NN learning
+Efficiency: Make the NN more efficient by changing the algorithm
+Make possible several mutations at once
+
+Prevent same 1-mutation clones, especially for removing synapses and neurons
+Create all possible 1 mutation clones with removed synapses and neurons beforehand
+Calculate the number of clones depending on all possible 1-mutations
+Every generation make one completely random clone to be able to start from a random point on the cost function graph and to avoid the limit of mutations a clone can have
+
+Optimization using Threads and multiple computers
+The number of clones depends on the size of the neural network
+
+
+
+1.948 s - clone 15 done
+2.074 s - clone 10 done
+2.098 s - clone 5 done
+2.247 s - clone 9 done
+2.053 s - clone 22 done
+2.349 s - clone 23 done
+2.335 s - clone 25 done
+2.403 s - clone 19 done
+2.254 s - clone 27 done
+2.64 s - clone 8 done
+3.098 s - clone 18 done
+3.161 s - clone 11 done
+3.175 s - clone 14 done
+3.263 s - clone 17 done
+3.328 s - clone 0 done
+2.734 s - clone 28 done
+3.428 s - clone 12 done
+3.514 s - clone 1 done
+3.427 s - clone 20 done
+3.536 s - clone 7 done
+3.712 s - clone 6 done
+3.532 s - clone 21 done
+3.786 s - clone 2 done
+3.767 s - clone 13 done
+3.767 s - clone 16 done
+3.532 s - clone 24 done
+4.116 s - clone 3 done
+4.196 s - clone 4 done
+4.024 s - clone 48 done
+4.088 s - clone 29 done
+4.014 s - clone 54 done
+4.102 s - clone 36 done
+4.098 s - clone 47 done
+4.122 s - clone 41 done
+4.182 s - clone 30 done
+4.168 s - clone 42 done
+4.239 s - clone 35 done
+4.223 s - clone 53 done
+4.24 s - clone 77 done
+4.147 s - clone 26 done
+4.238 s - clone 83 done
+4.318 s - clone 59 done
+4.282 s - clone 72 done
+4.177 s - clone 37 done
+4.191 s - clone 32 done
+4.301 s - clone 78 done
+4.305 s - clone 84 done
+4.361 s - clone 71 done
+4.378 s - clone 66 done
+4.39 s - clone 65 done
+4.299 s - clone 90 done
+4.303 s - clone 96 done
+4.424 s - clone 60 done
+4.344 s - clone 89 done
+4.266 s - clone 43 done
+4.341 s - clone 95 done
+4.274 s - clone 49 done
+4.324 s - clone 31 done
+4.296 s - clone 38 done
+4.276 s - clone 61 done
+4.29 s - clone 50 done
+4.32 s - clone 44 done
+4.294 s - clone 55 done
+4.211 s - clone 85 done
+4.308 s - clone 56 done
+4.229 s - clone 80 done
+4.278 s - clone 73 done
+4.28 s - clone 68 done
+4.27 s - clone 74 done
+4.316 s - clone 67 done
+4.221 s - clone 98 done
+4.25 s - clone 92 done
+4.334 s - clone 62 done
+4.26 s - clone 86 done
+4.247 s - clone 97 done
+4.264 s - clone 91 done
+4.307 s - clone 79 done
+4.159 s - clone 57 done
+4.187 s - clone 51 done
+4.108 s - clone 75 done
+4.049 s - clone 88 done
+4.278 s - clone 34 done
+4.253 s - clone 45 done
+4.093 s - clone 82 done
+4.141 s - clone 70 done
+4.303 s - clone 39 done
+4.249 s - clone 52 done
+4.315 s - clone 33 done
+4.225 s - clone 58 done
+4.225 s - clone 63 done
+4.147 s - clone 76 done
+4.137 s - clone 81 done
+4.301 s - clone 40 done
+4.296 s - clone 46 done
+4.126 s - clone 87 done
+4.192 s - clone 69 done
+4.121 s - clone 93 done
+4.247 s - clone 64 done
+4.099 s - clone 94 done
+4.422 s - clone 99 done
+5.608 s - all mutations + testing of generation 0
+
+
+
+0.851897260372438   0.851897260372438
+0.851897260372438   0.851897260372438
+0.851897260372438   0.851897260372438
+0.8518914796611483  0.8518914796611483
+0.851897260372438   0.851897260372438
+0.8420879041566486  0.8420879041566486
+0.851897260372438   0.851897260372438
+0.8742166454631604  0.8742166454631604
+0.8788020516866623  0.8788020516866623
+1.3258692706340338  1.3258692706340338
