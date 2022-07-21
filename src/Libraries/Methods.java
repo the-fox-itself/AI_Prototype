@@ -9,7 +9,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import static Mechanic.MainVariables.FONT_USED;
+import static Mechanic.Variables.FONT_USED;
 
 public abstract class Methods {
     public final static Dimension FRAME_SIZE = new Dimension((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth(), (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight());

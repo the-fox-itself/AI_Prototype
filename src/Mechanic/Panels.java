@@ -5,8 +5,8 @@ import Libraries.Methods;
 import javax.swing.*;
 import java.awt.*;
 
-import static Mechanic.MainVariables.*;
-import static Mechanic.MainVariables.nnvYDisplacement;
+import static Mechanic.Variables.*;
+import static Mechanic.Variables.nnvYDisplacement;
 
 public class Panels {
     public static class DrawPanel extends JPanel {
