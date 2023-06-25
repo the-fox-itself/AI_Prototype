@@ -469,7 +469,7 @@ public class Mechanics extends Variables {                                      
                     } else
                         System.out.println("! There is no created or loaded Neural network to test");
                     break;
-                case "test e":      //14.91%        --> 20 generations -->      14.953%         14.1616%
+                case "test e":      //14.91%        --> 20 generations -->      14.953%         14.1616%                46.79833333333333%
                     if (loadEvolutionaryNeuralNetwork()) {        //600 generations  15.383%      -->     2843 generations    101 neurons     1.4546      11.208%
                         System.out.println(": Testing... (usually takes a couple of minutes)");
                         long clock1 = new Date().getTime();
